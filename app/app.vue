@@ -84,21 +84,29 @@ const onDateSelect = (newDate: string | Date) => {
 <style>
 .inline-picker .mx-input-wrapper,
 .inline-picker .mx-input {
-  display: none !important;
+  display: none;
+}
+
+.mx-datepicker-main {
+  border-radius: 5px;
+}
+
+.mx-datepicker .cell {
+  border-radius: 3px;
 }
 
 .mx-datepicker .cell.completed-day {
-  background: #22c55e !important;
-  color: #ffffff !important;
+  background: #22c55e;
+  color: #ffffff;
 }
 
 .mx-datepicker .cell.pending-day {
-  background: #6b7280 !important;
-  color: #ffffff !important;
+  background: #6b7280;
+  color: #ffffff;
 }
 
 .mx-datepicker .cell.selected-day {
-  background: #3b82f6 !important;
-  color: #ffffff !important;
+  background: #3b82f6;
+  color: #ffffff;
 }
 </style>
