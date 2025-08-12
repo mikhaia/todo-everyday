@@ -5,14 +5,17 @@
     </h2>
     <div class="space-y-2">
       <div class="flex gap-2">
-        <input v-model="text" @keyup.enter="add" placeholder="New task…" class="border rounded px-3 py-2 flex-1" />
+        <input v-model="title" @keyup.enter="add" placeholder="New task…" class="border rounded px-3 py-2 flex-1" />
         <button @click="add" class="bg-brand text-white px-4 rounded">Add</button>
       </div>
 
       <ul class="space-y-2 animate__animated animate__fadeIn">
-        <li v-for="(t,i) in list" :key="i" class="bg-white border rounded p-2 flex justify-between">
-          <span :class="{ 'line-through text-gray-400': t.done }" @click="toggle(i)">{{ t.text }}</span>
-          <button class="text-red-500" @click="remove(i)" aria-label="Remove task">
+        <li v-for="(t,i) in list" :key="t.id" class="bg-white border rounded p-2 flex items-center justify-between">
+          <label class="flex items-center gap-2 flex-1">
+            <input type="checkbox" :checked="t.done" @change="toggle(i)" />
+            <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
+          </label>
+          <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
             <span class="material-symbols-outlined">delete</span>
           </button>
         </li>
@@ -22,37 +25,91 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from '@vueuse/core'
+import { ref, computed, watch, onUnmounted } from 'vue'
+import { useFirebaseApp } from 'vuefire'
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  orderBy,
+  onSnapshot
+} from 'firebase/firestore'
+import { format, startOfMonth, endOfMonth } from 'date-fns'
 
-interface Todo { text: string; done: boolean }
+interface Todo { id?: string; title: string; date: string; done: boolean }
 
 const day = useState('day', () => new Date().toISOString().slice(0, 10))
+const user = useState<{ uid: string } | null>('user', () => null)
 
-const todos = useStorage<Record<string, Todo[]>>('todos', {})
+const app = useFirebaseApp()
+const db = getFirestore(app)
 
-const list = computed({
-  get: () => todos.value[day.value] || [],
-  set: (val: Todo[]) => {
-    todos.value[day.value] = val
+const tasks = ref<Todo[]>([])
+const month = computed(() => day.value.slice(0, 7))
+let off: (() => void) | null = null
+
+const loadMonth = (m: string) => {
+  if (!user.value) return
+  const start = format(startOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
+  const end = format(endOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
+  if (off) off()
+  const q = query(
+    collection(db, 'users', user.value.uid, 'todos'),
+    orderBy('date'),
+    where('date', '>=', start),
+    where('date', '<=', end)
+  )
+  off = onSnapshot(q, (snap) => {
+    tasks.value = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Todo, 'id'>) }))
+  })
+}
+
+watch([user, month], ([u, m]) => {
+  if (u) loadMonth(m)
+  else {
+    tasks.value = []
+    if (off) {
+      off()
+      off = null
+    }
   }
+}, { immediate: true })
+
+onUnmounted(() => {
+  if (off) off()
 })
 
-const text = ref('')
+const list = computed(() => tasks.value.filter((t) => t.date === day.value))
 
-const add = () => {
-  const s = text.value.trim()
-  if (!s) return
-  list.value = [...list.value, { text: s, done: false }]
-  text.value = ''
+const title = ref('')
+
+const add = async () => {
+  const s = title.value.trim()
+  if (!s || !user.value) return
+  await addDoc(collection(db, 'users', user.value.uid, 'todos'), {
+    title: s,
+    date: day.value,
+    done: false
+  })
+  title.value = ''
 }
 
-const remove = (i: number) => {
-  list.value = list.value.filter((_, n) => n !== i)
+const deleteTask = async (i: number) => {
+  if (!user.value) return
+  const t = list.value[i]
+  if (t?.id) await deleteDoc(doc(db, 'users', user.value.uid, 'todos', t.id))
 }
 
-const toggle = (i: number) => {
-  const updated = [...list.value]
-  updated[i].done = !updated[i].done
-  list.value = updated
+const toggle = async (i: number) => {
+  if (!user.value) return
+  const t = list.value[i]
+  if (t?.id) await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
+    done: !t.done
+  })
 }
 </script>
