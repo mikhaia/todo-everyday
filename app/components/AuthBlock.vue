@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap-2">
+  <div class="flex items-center gap-2 mt-4">
     <template v-if="user">
       <img :src="user.photoURL || ''" class="w-6 h-6 rounded-full" />
       <span class="text-sm">{{ user.displayName || 'User' }}</span>

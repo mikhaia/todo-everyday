@@ -1,13 +1,13 @@
 <template>
   <div>
-    <h3 class="text-lg font-bold mt-4 flex items-center gap-1">
+    <h3 class="font-bold mt-2 flex items-center gap-1">
       <span class="material-symbols-outlined">label</span>Categories
     </h3>
     <ul class="mt-2 space-y-1">
       <li v-for="c in categories" :key="c.id">
         <span
-          class="px-2 py-1 rounded text-sm flex items-center gap-1 text-white"
-          :style="{ background: c.background }"
+          class="px-2 py-1 rounded text-sm flex items-center gap-1"
+          :style="{ background: c.background, color: textColor(c.background) }"
         >
           <span v-if="c.icon" class="material-symbols-outlined">{{ c.icon }}</span>
           {{ c.title }}
@@ -18,11 +18,11 @@
       @click="openModal"
       class="mt-2 bg-brand text-white px-3 py-1 rounded w-full"
     >
-      Add category
+      + Add category
     </button>
     <div
       v-if="showModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[3000]"
     >
       <div class="bg-white p-4 rounded shadow w-80">
         <h4 class="text-lg font-semibold mb-2">New category</h4>
@@ -131,15 +131,22 @@ const iconOptions = [
   'person_book',
   'shopping_basket',
   'shopping_cart',
-  'movie'
+  'movie',
+  'exercise'
 ]
 
 const colorOptions = [
+  '#F9FAFB',
   '#87CEFA',
   '#90EE90',
   '#800000',
   '#FFA500',
   '#808080',
+  '#F9DF1D',
+  '#D0D0D0',
+  '#3F51B5',
+  '#607D8B',
+  '#009688',
   '#A52A2A'
 ]
 
@@ -164,12 +171,34 @@ const saveCategory = async () => {
   if (!title) return
   await addDoc(collection(db, 'users', user.value.uid, 'categories'), {
     title,
-    icon: newCategory.icon.trim(),
+    icon: newCategory.icon?.trim(),
     background: newCategory.background
   })
   newCategory.title = ''
   newCategory.icon = iconOptions[0]
   newCategory.background = colorOptions[0]
   showModal.value = false
+}
+
+function textColor(bg: string) {
+  const { r, g, b } = toRGB(bg);
+  const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return L > 0.6 ? '#111827' : '#ffffff';
+}
+
+function toRGB(color: string) {
+  if (!color) return { r: 0, g: 0, b: 0 };
+  if (color.startsWith('#')) {
+    let hex = color.slice(1);
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const num = parseInt(hex, 16);
+    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  }
+  
+  const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+  if (m && m.length >= 4) {
+    return { r: Number(m[1]), g: Number(m[2]), b: Number(m[3]) };
+  }
+  return { r: 0, g: 0, b: 0 };
 }
 </script>

@@ -2,25 +2,27 @@
   <div class="min-h-screen bg-gray-50 text-gray-900 font-sans">
     <div class="flex min-h-screen">
       <aside class="w-72 p-4 border-r flex flex-col justify-between">
-        <h1 class="flex items-center gap-2 text-lg font-bold">
-          <span class="material-symbols-outlined text-brand">checklist</span> Todo
-        </h1>
-        <div class="mt-4 space-y-2 h-[300px]">
-          <DatePicker
-            class="inline-picker"
-            v-model="day"
-            type="date"
-            format="YYYY-MM-DD"
-            value-type="format"
-            :open="true"
-            :editable="false"
-            :clearable="false"
-            :append-to-body="false"
-            title-format="YYYY-MM-DD"
-            @change="onDateSelect"
-          />
+        <div>
+          <h1 class="flex items-center gap-2 text-lg font-bold">
+            <span class="material-symbols-outlined text-brand">checklist</span> Todo
+          </h1>
+          <div class="space-y-2 h-[300px]">
+            <DatePicker
+              class="inline-picker"
+              v-model="day"
+              type="date"
+              format="YYYY-MM-DD"
+              value-type="format"
+              :open="true"
+              :editable="false"
+              :clearable="false"
+              :append-to-body="false"
+              title-format="YYYY-MM-DD"
+              @change="onDateSelect"
+            />
+          </div>
+          <CategoryList />
         </div>
-        <CategoryList />
         <AuthBlock />
       </aside>
       <main class="flex-1 p-6">

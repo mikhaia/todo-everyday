@@ -31,17 +31,17 @@
             <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
           </label>
           <span
-            v-if="categoryMap[t.categoryId]"
+            v-if="categoryMap[t.categoryId || '']"
             class="text-xs px-2 py-1 rounded text-white flex items-center gap-1"
-            :style="{ background: categoryMap[t.categoryId].background }"
+            :style="{ background: categoryMap[t.categoryId || '']?.background }"
           >
             <span
-              v-if="categoryMap[t.categoryId].icon"
+              v-if="categoryMap[t.categoryId || '']?.icon"
               class="material-symbols-outlined"
             >
-              {{ categoryMap[t.categoryId].icon }}
+              {{ categoryMap[t.categoryId || '']?.icon }}
             </span>
-            {{ categoryMap[t.categoryId].title }}
+            {{ categoryMap[t.categoryId || '']?.title }}
           </span>
           <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
             <span class="material-symbols-outlined">delete</span>
