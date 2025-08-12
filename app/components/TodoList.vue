@@ -1,7 +1,14 @@
 <template>
   <div class="max-w-3xl">
-    <h2 class="text-2xl font-bold mb-4 flex items-center gap-1">
-      <span class="material-symbols-outlined">checklist</span>ToDo
+    <h2 class="text-2xl font-bold mb-4 flex items-center gap-1"
+      :style="{ color: activeCategory?.background? textColor(activeCategory?.background) : '' }">
+      <span
+        class="material-symbols-outlined text-4xl"
+        v-if="activeCategory?.icon"
+        >{{ activeCategory.icon }}</span
+      >
+      <span v-else class="material-symbols-outlined">checklist</span>
+      {{ activeCategory?.title || 'ToDo' }}
     </h2>
     <div class="space-y-2">
       <div class="flex gap-2">
@@ -88,6 +95,10 @@ const day = useState('day', () => new Date().toISOString().slice(0, 10))
 const user = useState<{ uid: string } | null>('user', () => null)
 const categories = useState<Category[]>('categories', () => [])
 const activeCategoryId = useState<string>('activeCategoryId', () => '')
+
+const activeCategory = computed(() =>
+  categories.value.find((c) => c.id === activeCategoryId.value)
+)
 
 const app = useFirebaseApp()
 const db = getFirestore(app)
@@ -177,5 +188,23 @@ const toggle = async (i: number) => {
   if (t?.id) await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
     done: !t.done
   })
+}
+
+function textColor(bg: string) {
+  const { r, g, b } = toRGB(bg);
+  const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return L > 0.6 ? '#111827' : '#ffffff';
+}
+
+function toRGB(color: string) {
+  if (!color) return { r: 0, g: 0, b: 0 };
+  if (color.startsWith('#')) {
+    const hex = color.slice(1).replace(/^(.)(.)(.)$/, '$1$1$2$2$3$3');
+    const num = parseInt(hex, 16);
+    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  }
+
+  const m = color.match(/\d+/g);
+  return m ? { r: +m[0], g: +Number(m[1]), b: +Number(m[2]) } : { r: 0, g: 0, b: 0 };
 }
 </script>

@@ -1,24 +1,24 @@
 <template>
   <div>
-    <h3 class="font-bold mt-2 flex items-center gap-1">
+    <h3 class="mt-2 flex items-center gap-1">
       <span class="material-symbols-outlined">label</span>Categories
     </h3>
     <ul class="mt-2 space-y-1">
       <li v-for="c in categories" :key="c.id" class="flex items-center gap-1">
+        <span class="material-symbols-outlined" :class="{'invisible': activeCategoryId !== c.id}">check</span>
         <span
           class="px-2 py-1 rounded text-sm flex items-center gap-1 cursor-pointer flex-1"
-          :class="{ 'ring-2 ring-brand': activeCategoryId === c.id }"
           :style="{ background: c.background, color: textColor(c.background) }"
           @click="toggleFilter(c.id)"
         >
           <span v-if="c.icon" class="material-symbols-outlined">{{ c.icon }}</span>
           {{ c.title }}
         </span>
-        <button @click="openModal(c)" class="text-gray-500" aria-label="Edit category">
-          <span class="material-symbols-outlined text-sm">edit</span>
+        <button @click="openModal(c)" class="bg-gray-50 rounded text-black" aria-label="Edit category" title="Edit category">
+          <span class="material-symbols-outlined text-sm p-1.5">edit</span>
         </button>
-        <button @click="confirmDelete(c)" class="text-red-500" aria-label="Delete category">
-          <span class="material-symbols-outlined text-sm">delete</span>
+        <button @click="confirmDelete(c)" class="bg-red-500 rounded" aria-label="Delete category" title="Delete category">
+          <span class="material-symbols-outlined text-sm p-1.5">delete</span>
         </button>
       </li>
     </ul>
