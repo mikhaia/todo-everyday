@@ -34,21 +34,21 @@
           class="bg-white border rounded p-2 flex items-center gap-2"
         >
           <label class="flex items-center gap-2 flex-1">
-            <input type="checkbox" :checked="t.done" @change="toggle(i)" />
+            <input class="w-5 h-5 accent-green-600" type="checkbox" :checked="t.done" @change="toggle(i)" />
             <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
           </label>
           <span
-            v-if="categoryMap[t.categoryId || '']"
-            class="text-xs px-2 py-1 rounded text-white flex items-center gap-1"
-            :style="{ background: categoryMap[t.categoryId || '']?.background }"
+            v-if="t.categoryId && categoryMap[t.categoryId]"
+            class="text-xs px-2 py-1 rounded flex items-center gap-1"
+            :style="{ background: categoryMap[t.categoryId]?.background, color: textColor(categoryMap[t.categoryId]?.background || '') }"
           >
             <span
-              v-if="categoryMap[t.categoryId || '']?.icon"
+              v-if="categoryMap[t.categoryId]?.icon"
               class="material-symbols-outlined"
             >
-              {{ categoryMap[t.categoryId || '']?.icon }}
+              {{ categoryMap[t.categoryId]?.icon }}
             </span>
-            {{ categoryMap[t.categoryId || '']?.title }}
+            {{ categoryMap[t.categoryId]?.title }}
           </span>
           <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
             <span class="material-symbols-outlined">delete</span>
@@ -81,9 +81,10 @@ import { format, startOfMonth, endOfMonth } from 'date-fns'
 interface Todo {
   id?: string
   title: string
+  order: number
   date: string
   done: boolean
-  categoryId: string | null,
+  categoryId: string | null
   createdAt?: Timestamp | null
 }
 
@@ -133,6 +134,7 @@ const loadMonth = (m: string) => {
     collection(db, 'users', user.value.uid, 'todos'),
     where('date', '>=', start),
     where('date', '<=', end),
+    orderBy('date'),
     orderBy('order'),
     orderBy('createdAt', 'desc'),
   )
@@ -178,6 +180,7 @@ const add = async () => {
   if (!s || !user.value) return
   await addDoc(collection(db, 'users', user.value.uid, 'todos'), {
     title: s,
+    order: 0,
     date: day.value,
     done: false,
     categoryId: categoryId.value || null,
