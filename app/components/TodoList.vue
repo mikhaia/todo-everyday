@@ -57,6 +57,9 @@
             </button>
           </li>
         </template>
+        <template #placeholder>
+          <li class="border border-dashed rounded p-2 bg-gray-50"></li>
+        </template>
       </draggable>
     </div>
   </div>
@@ -69,7 +72,6 @@ import { useFirebaseApp } from 'vuefire'
 import {
   getFirestore,
   collection,
-  addDoc,
   writeBatch,
   updateDoc,
   deleteDoc,
@@ -190,14 +192,23 @@ const add = async () => {
       })
   }
   const newRef = doc(collection(db, 'users', user.value.uid, 'todos'))
-  batch.set(newRef, {
+  const newTask: Todo = {
+    id: newRef.id,
     title: s,
     date: day.value,
     done: false,
     categoryId: categoryId.value || null,
     order: 0
-  })
+  }
+  batch.set(newRef, newTask)
   await batch.commit()
+  // Update local state immediately without requiring reload
+  tasks.value = [
+    ...tasks.value.map((t) =>
+      t.date === day.value ? { ...t, order: (t.order ?? 0) + 1 } : t
+    ),
+    newTask
+  ]
   title.value = ''
   categoryId.value = activeCategoryId.value
 }
