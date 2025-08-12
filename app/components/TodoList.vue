@@ -26,35 +26,45 @@
         </select>
         <button @click="add" class="bg-brand text-white px-4 rounded">Add</button>
       </div>
+      <draggable
+        :modelValue="list"
+        item-key="id"
+        tag="ul"
+        class="space-y-2 animate__animated animate__fadeIn"
+        handle=".drag-handle"
+        :animation="200"
+        chosen-class="is-chosen"
+        ghost-class="is-ghost"
+        @update:modelValue="onReorder"
+      >
+        <template #item="{ element: t, index: i }">
+          <li>
+            <div class="bg-white border rounded p-2 flex items-center gap-2">
+              <span class="material-symbols-outlined drag-handle cursor-grab select-none">drag_indicator</span>
 
-      <ul class="space-y-2 animate__animated animate__fadeIn">
-        <li
-          v-for="(t,i) in list"
-          :key="t.id"
-          class="bg-white border rounded p-2 flex items-center gap-2"
-        >
-          <label class="flex items-center gap-2 flex-1">
-            <input class="w-5 h-5 accent-green-600" type="checkbox" :checked="t.done" @change="toggle(i)" />
-            <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
-          </label>
-          <span
-            v-if="t.categoryId && categoryMap[t.categoryId]"
-            class="text-xs px-2 py-1 rounded flex items-center gap-1"
-            :style="{ background: categoryMap[t.categoryId]?.background, color: textColor(categoryMap[t.categoryId]?.background || '') }"
-          >
-            <span
-              v-if="categoryMap[t.categoryId]?.icon"
-              class="material-symbols-outlined"
-            >
-              {{ categoryMap[t.categoryId]?.icon }}
-            </span>
-            {{ categoryMap[t.categoryId]?.title }}
-          </span>
-          <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </li>
-      </ul>
+              <label class="flex items-center gap-2 flex-1">
+                <input class="w-5 h-5 accent-green-600" type="checkbox" :checked="t.done" @change="toggle(i)" />
+                <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
+              </label>
+
+              <span
+                v-if="t.categoryId && categoryMap[t.categoryId]"
+                class="text-xs px-2 py-1 rounded flex items-center gap-1"
+                :style="{ background: categoryMap[t.categoryId]?.background, color: textColor(categoryMap[t.categoryId]?.background || '') }"
+              >
+                <span v-if="categoryMap[t.categoryId]?.icon" class="material-symbols-outlined">
+                  {{ categoryMap[t.categoryId]?.icon }}
+                </span>
+                {{ categoryMap[t.categoryId]?.title }}
+              </span>
+
+              <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </li>
+        </template>
+      </draggable>
     </div>
   </div>
 </template>
@@ -74,9 +84,11 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  writeBatch
 } from 'firebase/firestore'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
+import draggable from 'vuedraggable'
 
 interface Todo {
   id?: string
@@ -202,6 +214,18 @@ const toggle = async (i: number) => {
   if (t?.id) await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
     done: !t.done
   })
+}
+
+
+const onReorder = async (newList: Todo[]) => {
+  if (!user.value) return
+  const batch = writeBatch(db)
+  newList.forEach((t, idx) => {
+    batch.update(doc(db, 'users', user.value!.uid, 'todos', t.id!), {
+      order: (idx + 1) * 1000,
+    })
+  })
+  await batch.commit()
 }
 
 function textColor(bg: string) {
