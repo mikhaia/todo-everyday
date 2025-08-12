@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
 import { format } from 'date-fns'
@@ -56,7 +56,19 @@ const route = useRoute()
 const day = useState('day', () =>
   new Date().toISOString().slice(0, 10)
 )
-const tasks = useState<Todo[]>('tasks', () => [])
+const tasks = useState<Todo[]>('tasks', () => {
+  if (process.client) {
+    const saved = localStorage.getItem('tasks')
+    if (saved) {
+      try {
+        return JSON.parse(saved) as Todo[]
+      } catch {
+        /* ignore malformed data */
+      }
+    }
+  }
+  return []
+})
 const categories = useState<{ id: string; background: string }[]>('categories', () => [])
 const activeCategoryId = useState<string>('activeCategoryId', () => '')
 
@@ -90,6 +102,12 @@ const getDayClass = (value: Date, _innerValue: Date[], classes: string) => {
 const onDateSelect = (newDate: string | Date) => {
   router.push(`/date/${newDate}`);
 }
+
+watch(tasks, (t) => {
+  if (process.client) {
+    localStorage.setItem('tasks', JSON.stringify(t))
+  }
+}, { deep: true })
 </script>
 
 <style>
