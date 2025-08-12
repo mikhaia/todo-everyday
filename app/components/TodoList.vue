@@ -9,17 +9,25 @@
         <button @click="add" class="bg-brand text-white px-4 rounded">Add</button>
       </div>
 
-      <ul class="space-y-2 animate__animated animate__fadeIn">
-        <li v-for="(t,i) in list" :key="t.id" class="bg-white border rounded p-2 flex items-center justify-between">
-          <label class="flex items-center gap-2 flex-1">
-            <input type="checkbox" :checked="t.done" @change="toggle(i)" />
-            <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
-          </label>
-          <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </li>
-      </ul>
+      <draggable
+        v-model="list"
+        item-key="id"
+        tag="ul"
+        class="space-y-2 animate__animated animate__fadeIn"
+        @end="persistOrder"
+      >
+        <template #item="{ element, index }">
+          <li class="bg-white border rounded p-2 flex items-center justify-between">
+            <label class="flex items-center gap-2 flex-1">
+              <input type="checkbox" :checked="element.done" @change="toggle(index)" />
+              <span :class="{ 'line-through text-gray-400': element.done }">{{ element.title }}</span>
+            </label>
+            <button class="text-red-500" @click="deleteTask(index)" aria-label="Remove task">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </li>
+        </template>
+      </draggable>
     </div>
   </div>
 </template>
@@ -27,6 +35,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useFirebaseApp } from 'vuefire'
+import draggable from 'vuedraggable'
 import {
   getFirestore,
   collection,
@@ -41,7 +50,7 @@ import {
 } from 'firebase/firestore'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 
-interface Todo { id?: string; title: string; date: string; done: boolean }
+interface Todo { id?: string; title: string; date: string; done: boolean; order: number }
 
 const day = useState('day', () => new Date().toISOString().slice(0, 10))
 const user = useState<{ uid: string } | null>('user', () => null)
@@ -61,6 +70,7 @@ const loadMonth = (m: string) => {
   const q = query(
     collection(db, 'users', user.value.uid, 'todos'),
     orderBy('date'),
+    orderBy('order'),
     where('date', '>=', start),
     where('date', '<=', end)
   )
@@ -84,17 +94,27 @@ onUnmounted(() => {
   if (off) off()
 })
 
-const list = computed(() => tasks.value.filter((t) => t.date === day.value))
+const list = computed({
+  get: () => tasks.value.filter((t) => t.date === day.value),
+  set: (val: Todo[]) => {
+    const others = tasks.value.filter((t) => t.date !== day.value)
+    tasks.value = [...others, ...val]
+  }
+})
 
 const title = ref('')
 
 const add = async () => {
   const s = title.value.trim()
   if (!s || !user.value) return
+  const newOrder = list.value.length
+    ? Math.max(...list.value.map((t) => t.order ?? 0)) + 1
+    : 0
   await addDoc(collection(db, 'users', user.value.uid, 'todos'), {
     title: s,
     date: day.value,
-    done: false
+    done: false,
+    order: newOrder
   })
   title.value = ''
 }
@@ -103,6 +123,7 @@ const deleteTask = async (i: number) => {
   if (!user.value) return
   const t = list.value[i]
   if (t?.id) await deleteDoc(doc(db, 'users', user.value.uid, 'todos', t.id))
+  await persistOrder()
 }
 
 const toggle = async (i: number) => {
@@ -111,5 +132,19 @@ const toggle = async (i: number) => {
   if (t?.id) await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
     done: !t.done
   })
+}
+
+const persistOrder = async () => {
+  if (!user.value) return
+  await Promise.all(
+    list.value.map((t, idx) => {
+      t.order = idx
+      if (t.id) {
+        return updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
+          order: idx
+        })
+      }
+    })
+  )
 }
 </script>
