@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
@@ -47,6 +47,7 @@ interface Todo {
 }
 
 const router = useRouter()
+const route = useRoute()
 const day = useState('day', () =>
   new Date().toISOString().slice(0, 10)
 )
@@ -62,9 +63,10 @@ const dayMap = computed(() => {
   return map
 })
 
-const getDayClass = (value: Date, innerValue: Date[], classes: string) => {
+const getDayClass = (value: Date, _innerValue: Date[], classes: string) => {
   const date = format(value, 'yyyy-MM-dd')
-  if (innerValue.some(v => format(v, 'yyyy-MM-dd') === date)) {
+  const selected = route.params.date as string | undefined
+  if (selected === date) {
     return `${classes} selected-day`
   }
   const info = dayMap.value[date]
