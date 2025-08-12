@@ -15,16 +15,52 @@
       </li>
     </ul>
     <button
-      @click="addCategory"
+      @click="openModal"
       class="mt-2 bg-brand text-white px-3 py-1 rounded w-full"
     >
       Add category
     </button>
+    <div
+      v-if="showModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+    >
+      <div class="bg-white p-4 rounded shadow w-80">
+        <h4 class="text-lg font-semibold mb-2">New category</h4>
+        <div class="space-y-2">
+          <input
+            v-model="newCategory.title"
+            placeholder="Title"
+            class="border rounded w-full px-2 py-1"
+          />
+          <input
+            v-model="newCategory.icon"
+            placeholder="Icon"
+            class="border rounded w-full px-2 py-1"
+          />
+          <div>
+            <span class="block text-sm mb-1">Background</span>
+            <input
+              v-model="newCategory.background"
+              type="color"
+              class="w-full h-10 border rounded"
+            />
+          </div>
+        </div>
+        <div class="mt-4 flex justify-end gap-2">
+          <button @click="closeModal" class="px-3 py-1 bg-gray-200 rounded">
+            Cancel
+          </button>
+          <button @click="saveCategory" class="px-3 py-1 bg-brand text-white rounded">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { watch, onUnmounted } from 'vue'
+import { watch, onUnmounted, ref, reactive } from 'vue'
 import { useFirebaseApp } from 'vuefire'
 import { getFirestore, collection, addDoc, onSnapshot } from 'firebase/firestore'
 
@@ -65,17 +101,34 @@ onUnmounted(() => {
   if (off) off()
 })
 
-const addCategory = async () => {
+const showModal = ref(false)
+const newCategory = reactive({
+  title: '',
+  icon: '',
+  background: '#000000'
+})
+
+const openModal = () => {
   if (!user.value) return
-  const title = prompt('Category name?')?.trim()
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+}
+
+const saveCategory = async () => {
+  if (!user.value) return
+  const title = newCategory.title.trim()
   if (!title) return
-  const icon = prompt('Icon (material icon)?')?.trim() || ''
-  const background =
-    prompt('Background color (e.g., #ff0000)?')?.trim() || '#000000'
   await addDoc(collection(db, 'users', user.value.uid, 'categories'), {
     title,
-    icon,
-    background
+    icon: newCategory.icon.trim(),
+    background: newCategory.background
   })
+  newCategory.title = ''
+  newCategory.icon = ''
+  newCategory.background = '#000000'
+  showModal.value = false
 }
 </script>
