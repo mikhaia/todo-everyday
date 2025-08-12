@@ -91,7 +91,7 @@ const categories = useState<Category[]>('categories', () => [])
 const app = useFirebaseApp()
 const db = getFirestore(app)
 
-const tasks = ref<Todo[]>([])
+const tasks = useState<Todo[]>('tasks', () => [])
 const month = computed(() => day.value.slice(0, 7))
 let off: (() => void) | null = null
 
