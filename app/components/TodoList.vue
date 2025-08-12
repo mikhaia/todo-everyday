@@ -116,6 +116,11 @@ const categoryMap = computed<Record<string, Category>>(() => {
   return map
 })
 
+watch(activeCategoryId, id => {
+  categoryId.value = id
+}, { immediate: true })
+
+
 const loadMonth = (m: string) => {
   if (!user.value) return
   const start = format(startOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
@@ -173,7 +178,7 @@ const add = async () => {
     categoryId: categoryId.value || null
   })
   title.value = ''
-  categoryId.value = ''
+  categoryId.value = activeCategoryId.value
 }
 
 const deleteTask = async (i: number) => {
