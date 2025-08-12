@@ -72,7 +72,9 @@ import {
   query,
   where,
   orderBy,
-  onSnapshot
+  onSnapshot,
+  serverTimestamp,
+  Timestamp
 } from 'firebase/firestore'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 
@@ -81,7 +83,8 @@ interface Todo {
   title: string
   date: string
   done: boolean
-  categoryId: string | null
+  categoryId: string | null,
+  createdAt?: Timestamp | null
 }
 
 interface Category {
@@ -128,9 +131,10 @@ const loadMonth = (m: string) => {
   if (off) off()
   const q = query(
     collection(db, 'users', user.value.uid, 'todos'),
-    orderBy('date'),
     where('date', '>=', start),
-    where('date', '<=', end)
+    where('date', '<=', end),
+    orderBy('order'),
+    orderBy('createdAt', 'desc'),
   )
   off = onSnapshot(q, (snap) => {
     tasks.value = snap.docs.map((d) => {
@@ -138,7 +142,8 @@ const loadMonth = (m: string) => {
       return {
         id: d.id,
         ...data,
-        categoryId: data.categoryId ?? null
+        categoryId: data.categoryId ?? null,
+        createdAt: data.createdAt ?? null
       }
     })
   })
@@ -175,7 +180,8 @@ const add = async () => {
     title: s,
     date: day.value,
     done: false,
-    categoryId: categoryId.value || null
+    categoryId: categoryId.value || null,
+    createdAt: serverTimestamp()
   })
   title.value = ''
   categoryId.value = activeCategoryId.value
