@@ -47,6 +47,8 @@ import CategoryList from './components/CategoryList.vue'
 interface Todo {
   date: string
   done: boolean
+  categoryId?: string | null
+  order?: number
 }
 
 const router = useRouter()
