@@ -87,6 +87,7 @@ interface Category {
 const day = useState('day', () => new Date().toISOString().slice(0, 10))
 const user = useState<{ uid: string } | null>('user', () => null)
 const categories = useState<Category[]>('categories', () => [])
+const activeCategoryId = useState<string>('activeCategoryId', () => '')
 
 const app = useFirebaseApp()
 const db = getFirestore(app)
@@ -142,7 +143,12 @@ onUnmounted(() => {
   if (off) off()
 })
 
-const list = computed(() => tasks.value.filter((t) => t.date === day.value))
+const list = computed(() =>
+  tasks.value.filter(
+    (t) =>
+      t.date === day.value && (!activeCategoryId.value || t.categoryId === activeCategoryId.value)
+  )
+)
 
 const title = ref('')
 
