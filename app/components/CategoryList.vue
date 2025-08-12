@@ -189,16 +189,12 @@ function textColor(bg: string) {
 function toRGB(color: string) {
   if (!color) return { r: 0, g: 0, b: 0 };
   if (color.startsWith('#')) {
-    let hex = color.slice(1);
-    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const hex = color.slice(1).replace(/^(.)(.)(.)$/, '$1$1$2$2$3$3');
     const num = parseInt(hex, 16);
     return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
   }
-  
-  const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
-  if (m && m.length >= 4) {
-    return { r: Number(m[1]), g: Number(m[2]), b: Number(m[3]) };
-  }
-  return { r: 0, g: 0, b: 0 };
+
+  const m = color.match(/\d+/g);
+  return m ? { r: +m[0], g: +Number(m[1]), b: +Number(m[2]) } : { r: 0, g: 0, b: 0 };
 }
 </script>

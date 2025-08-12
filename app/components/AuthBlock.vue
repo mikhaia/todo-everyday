@@ -1,12 +1,15 @@
 <template>
-  <div class="flex items-center gap-2 mt-4">
+  <div class="flex items-center gap-2 mt-4 bg-gray-50 rounded p-2 text-black">
     <template v-if="user">
       <img :src="user.photoURL || ''" class="w-6 h-6 rounded-full" />
       <span class="text-sm">{{ user.displayName || 'User' }}</span>
-      <button class="ml-auto text-red-600" @click="logout">Sign Out</button>
+      <button class="ml-auto flex items-center" @click="logout">
+        <span class="material-symbols-outlined">exit_to_app</span>
+      </button>
     </template>
-    <button v-else class="bg-brand text-white px-3 py-1 rounded" @click="login">
-      Sign In
+    <button v-else class="px-3 py-1 rounded flex items-center w-full justify-center" @click="login">
+      <span class="material-symbols-outlined">account_circle</span>
+      <span class="ml-2">Sign In</span>
     </button>
   </div>
 </template>
