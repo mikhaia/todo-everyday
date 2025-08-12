@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen bg-gray-50 text-gray-900 font-sans">
     <div class="flex min-h-screen">
-      <aside class="w-72 p-4 border-r flex flex-col justify-between">
+      <aside class="w-72 p-4 border-r flex flex-col justify-between bg-gray-600 text-white">
         <div>
           <h1 class="flex items-center gap-2 text-lg font-bold">
-            <span class="material-symbols-outlined text-brand">checklist</span> Todo
+            <span class="material-symbols-outlined">checklist</span> Todo
           </h1>
           <div class="space-y-2 h-[300px]">
             <DatePicker
