@@ -156,14 +156,17 @@ const loadMonth = (m: string) => {
 
 watch([user, month], ([u, m]) => {
   if (u) loadMonth(m)
-  else {
+}, { immediate: true })
+
+watch(user, (u) => {
+  if (!u) {
     tasks.value = []
     if (off) {
       off()
       off = null
     }
   }
-}, { immediate: true })
+})
 
 onUnmounted(() => {
   if (off) off()
