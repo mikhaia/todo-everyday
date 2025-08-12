@@ -18,6 +18,7 @@
               :clearable="false"
               :append-to-body="false"
               title-format="YYYY-MM-DD"
+              :get-classes="getDayClass"
               @change="onDateSelect"
             />
           </div>
@@ -34,14 +35,44 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { computed } from 'vue'
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
+import { format } from 'date-fns'
 import CategoryList from './components/CategoryList.vue'
+
+interface Todo {
+  date: string
+  done: boolean
+}
 
 const router = useRouter()
 const day = useState('day', () =>
   new Date().toISOString().slice(0, 10)
 )
+const tasks = useState<Todo[]>('tasks', () => [])
+
+const dayMap = computed(() => {
+  const map: Record<string, { total: number; done: number }> = {}
+  for (const t of tasks.value) {
+    const m = map[t.date] || (map[t.date] = { total: 0, done: 0 })
+    m.total++
+    if (t.done) m.done++
+  }
+  return map
+})
+
+const getDayClass = (value: Date, innerValue: Date[], classes: string) => {
+  const date = format(value, 'yyyy-MM-dd')
+  if (innerValue.some(v => format(v, 'yyyy-MM-dd') === date)) {
+    return `${classes} selected-day`
+  }
+  const info = dayMap.value[date]
+  if (info) {
+    return `${classes} ${info.done === info.total ? 'completed-day' : 'pending-day'}`
+  }
+  return classes
+}
 
 const onDateSelect = (newDate: string | Date) => {
   router.push(`/date/${newDate}`);
@@ -54,15 +85,18 @@ const onDateSelect = (newDate: string | Date) => {
   display: none !important;
 }
 
-/* Todo: in the future days with all tasks completed will be highlighted like this
-and a different color will mark days with remaining tasks.
-.cell[title="2025-08-09"] {
-  background: green;
-  color: white;
+.mx-datepicker .cell.completed-day {
+  background: #22c55e !important;
+  color: #ffffff !important;
 }
-.cell[title="2025-08-09"] {
-  background: red;
-  color: white;
+
+.mx-datepicker .cell.pending-day {
+  background: #6b7280 !important;
+  color: #ffffff !important;
 }
-*/
+
+.mx-datepicker .cell.selected-day {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+}
 </style>
