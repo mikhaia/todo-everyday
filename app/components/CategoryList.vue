@@ -32,18 +32,38 @@
             placeholder="Title"
             class="border rounded w-full px-2 py-1"
           />
-          <input
-            v-model="newCategory.icon"
-            placeholder="Icon"
-            class="border rounded w-full px-2 py-1"
-          />
+          <div>
+            <span class="block text-sm mb-1">Icon</span>
+            <div class="grid grid-cols-5 gap-2">
+              <button
+                v-for="icon in iconOptions"
+                :key="icon"
+                type="button"
+                @click="newCategory.icon = icon"
+                :class="[
+                  'p-2 border rounded flex items-center justify-center',
+                  newCategory.icon === icon ? 'bg-brand text-white' : 'bg-gray-100'
+                ]"
+              >
+                <span class="material-symbols-outlined">{{ icon }}</span>
+              </button>
+            </div>
+          </div>
           <div>
             <span class="block text-sm mb-1">Background</span>
-            <input
-              v-model="newCategory.background"
-              type="color"
-              class="w-full h-10 border rounded"
-            />
+            <div class="grid grid-cols-6 gap-2">
+              <button
+                v-for="color in colorOptions"
+                :key="color"
+                type="button"
+                @click="newCategory.background = color"
+                :style="{ background: color }"
+                :class="[
+                  'w-8 h-8 rounded',
+                  newCategory.background === color ? 'ring-2 ring-offset-2 ring-brand' : ''
+                ]"
+              ></button>
+            </div>
           </div>
         </div>
         <div class="mt-4 flex justify-end gap-2">
@@ -102,10 +122,31 @@ onUnmounted(() => {
 })
 
 const showModal = ref(false)
+const iconOptions = [
+  'home',
+  'stadia_controller',
+  'work',
+  'key',
+  'person',
+  'person_book',
+  'shopping_basket',
+  'shopping_cart',
+  'movie'
+]
+
+const colorOptions = [
+  '#87CEFA',
+  '#90EE90',
+  '#800000',
+  '#FFA500',
+  '#808080',
+  '#A52A2A'
+]
+
 const newCategory = reactive({
   title: '',
-  icon: '',
-  background: '#000000'
+  icon: iconOptions[0],
+  background: colorOptions[0]
 })
 
 const openModal = () => {
@@ -127,8 +168,8 @@ const saveCategory = async () => {
     background: newCategory.background
   })
   newCategory.title = ''
-  newCategory.icon = ''
-  newCategory.background = '#000000'
+  newCategory.icon = iconOptions[0]
+  newCategory.background = colorOptions[0]
   showModal.value = false
 }
 </script>
