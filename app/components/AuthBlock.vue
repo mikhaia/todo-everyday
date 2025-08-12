@@ -3,18 +3,22 @@
     <template v-if="user">
       <img :src="user.photoURL || ''" class="w-6 h-6 rounded-full" />
       <span class="text-sm">{{ user.displayName || 'User' }}</span>
-      <button class="ml-auto text-red-600" @click="logout">Выйти</button>
+      <button class="ml-auto text-red-600" @click="logout">Sign Out</button>
     </template>
     <button v-else class="bg-brand text-white px-3 py-1 rounded" @click="login">
-      Войти с Google
+      Sign In
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { auth, google } from '@/firebase'
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { useFirebaseApp } from 'vuefire'
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+
+const app = useFirebaseApp()
+const auth = getAuth(app)
+const google = new GoogleAuthProvider()
 
 const user = useState<{uid:string;displayName:string|null;photoURL:string|null}|null>('user', () => null)
 

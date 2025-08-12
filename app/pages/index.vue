@@ -3,7 +3,7 @@
     <h2 class="text-2xl font-bold mb-4">📝 ToDo</h2>
     <div class="space-y-2">
       <div class="flex gap-2">
-        <input v-model="text" @keyup.enter="add" placeholder="Новая задача…" class="border rounded px-3 py-2 flex-1" />
+        <input v-model="text" @keyup.enter="add" placeholder="New task…" class="border rounded px-3 py-2 flex-1" />
         <button @click="add" class="bg-brand text-white px-4 rounded">Add</button>
       </div>
 
@@ -15,9 +15,6 @@
       </ul>
     </div>
   </div>
-  <ClientOnly>
-    <AuthBlock class="mt-4" />
-  </ClientOnly>
 </template>
 
 <script setup lang="ts">
