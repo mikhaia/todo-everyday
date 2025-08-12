@@ -20,6 +20,7 @@
             @change="onDateSelect"
           />
         </div>
+        <CategoryList />
         <AuthBlock />
       </aside>
       <main class="flex-1 p-6">
@@ -33,6 +34,7 @@
 import { useRouter } from 'vue-router'
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
+import CategoryList from './components/CategoryList.vue'
 
 const router = useRouter()
 const day = useState('day', () =>
@@ -50,7 +52,8 @@ const onDateSelect = (newDate: string | Date) => {
   display: none !important;
 }
 
-/* Todo: в будущем так будут выделяться дни где все задачи выполнены, а и другим цветом где остались не выполненые задачи.
+/* Todo: in the future days with all tasks completed will be highlighted like this
+and a different color will mark days with remaining tasks.
 .cell[title="2025-08-09"] {
   background: green;
   color: white;

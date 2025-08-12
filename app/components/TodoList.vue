@@ -5,16 +5,44 @@
     </h2>
     <div class="space-y-2">
       <div class="flex gap-2">
-        <input v-model="title" @keyup.enter="add" placeholder="New task…" class="border rounded px-3 py-2 flex-1" />
+        <input
+          v-model="title"
+          @keyup.enter="add"
+          placeholder="New task…"
+          class="border rounded px-3 py-2 flex-1"
+        />
+        <select v-model="categoryId" class="border rounded px-2">
+          <option value="">No category</option>
+          <option v-for="c in categories" :key="c.id" :value="c.id">
+            {{ c.title }}
+          </option>
+        </select>
         <button @click="add" class="bg-brand text-white px-4 rounded">Add</button>
       </div>
 
       <ul class="space-y-2 animate__animated animate__fadeIn">
-        <li v-for="(t,i) in list" :key="t.id" class="bg-white border rounded p-2 flex items-center justify-between">
+        <li
+          v-for="(t,i) in list"
+          :key="t.id"
+          class="bg-white border rounded p-2 flex items-center gap-2"
+        >
           <label class="flex items-center gap-2 flex-1">
             <input type="checkbox" :checked="t.done" @change="toggle(i)" />
             <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
           </label>
+          <span
+            v-if="categoryMap[t.categoryId]"
+            class="text-xs px-2 py-1 rounded text-white flex items-center gap-1"
+            :style="{ background: categoryMap[t.categoryId].background }"
+          >
+            <span
+              v-if="categoryMap[t.categoryId].icon"
+              class="material-symbols-outlined"
+            >
+              {{ categoryMap[t.categoryId].icon }}
+            </span>
+            {{ categoryMap[t.categoryId].title }}
+          </span>
           <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
             <span class="material-symbols-outlined">delete</span>
           </button>
@@ -41,10 +69,24 @@ import {
 } from 'firebase/firestore'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 
-interface Todo { id?: string; title: string; date: string; done: boolean }
+interface Todo {
+  id?: string
+  title: string
+  date: string
+  done: boolean
+  categoryId: string | null
+}
+
+interface Category {
+  id: string
+  title: string
+  icon: string
+  background: string
+}
 
 const day = useState('day', () => new Date().toISOString().slice(0, 10))
 const user = useState<{ uid: string } | null>('user', () => null)
+const categories = useState<Category[]>('categories', () => [])
 
 const app = useFirebaseApp()
 const db = getFirestore(app)
@@ -52,6 +94,15 @@ const db = getFirestore(app)
 const tasks = ref<Todo[]>([])
 const month = computed(() => day.value.slice(0, 7))
 let off: (() => void) | null = null
+
+const categoryId = ref('')
+const categoryMap = computed<Record<string, Category>>(() => {
+  const map: Record<string, Category> = {}
+  for (const c of categories.value) {
+    if (c.id) map[c.id] = c
+  }
+  return map
+})
 
 const loadMonth = (m: string) => {
   if (!user.value) return
@@ -65,7 +116,14 @@ const loadMonth = (m: string) => {
     where('date', '<=', end)
   )
   off = onSnapshot(q, (snap) => {
-    tasks.value = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Todo, 'id'>) }))
+    tasks.value = snap.docs.map((d) => {
+      const data = d.data() as Omit<Todo, 'id'>
+      return {
+        id: d.id,
+        ...data,
+        categoryId: data.categoryId ?? null
+      }
+    })
   })
 }
 
@@ -94,9 +152,11 @@ const add = async () => {
   await addDoc(collection(db, 'users', user.value.uid, 'todos'), {
     title: s,
     date: day.value,
-    done: false
+    done: false,
+    categoryId: categoryId.value || null
   })
   title.value = ''
+  categoryId.value = ''
 }
 
 const deleteTask = async (i: number) => {
