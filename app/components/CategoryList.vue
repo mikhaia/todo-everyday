@@ -32,7 +32,7 @@
       v-if="showModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[3000]"
     >
-      <div class="bg-white p-4 rounded shadow w-80">
+      <div class="bg-white p-4 rounded shadow w-80 text-black">
         <h4 class="text-lg font-semibold mb-2">
           {{ editingId ? 'Edit category' : 'New category' }}
         </h4>
