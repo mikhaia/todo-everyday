@@ -27,48 +27,41 @@
         <button @click="add" class="bg-brand text-white px-4 rounded">Add</button>
       </div>
 
-      <draggable
-        :model-value="list"
-        item-key="id"
-        class="space-y-2 animate__animated animate__fadeIn"
-        @update:model-value="reorder"
-      >
-        <template #item="{ element: t, index: i }">
-          <li class="bg-white border rounded p-2 flex items-center gap-2">
-            <label class="flex items-center gap-2 flex-1">
-              <input type="checkbox" :checked="t.done" @change="toggle(i)" />
-              <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
-            </label>
+      <ul class="space-y-2 animate__animated animate__fadeIn">
+        <li
+          v-for="(t, i) in list"
+          :key="t.id"
+          class="bg-white border rounded p-2 flex items-center gap-2"
+        >
+          <label class="flex items-center gap-2 flex-1">
+            <input type="checkbox" :checked="t.done" @change="toggle(i)" />
+            <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
+          </label>
+          <span
+            v-if="categoryMap[t.categoryId || '']"
+            class="text-xs px-2 py-1 rounded text-white flex items-center gap-1"
+            :style="{ background: categoryMap[t.categoryId || '']?.background }"
+          >
             <span
-              v-if="categoryMap[t.categoryId || '']"
-              class="text-xs px-2 py-1 rounded text-white flex items-center gap-1"
-              :style="{ background: categoryMap[t.categoryId || '']?.background }"
+              v-if="categoryMap[t.categoryId || '']?.icon"
+              class="material-symbols-outlined"
             >
-              <span
-                v-if="categoryMap[t.categoryId || '']?.icon"
-                class="material-symbols-outlined"
-              >
-                {{ categoryMap[t.categoryId || '']?.icon }}
-              </span>
-              {{ categoryMap[t.categoryId || '']?.title }}
+              {{ categoryMap[t.categoryId || '']?.icon }}
             </span>
-            <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
-              <span class="material-symbols-outlined">delete</span>
-            </button>
-          </li>
-        </template>
-        <template #placeholder>
-          <li class="border border-dashed rounded p-2 bg-gray-50"></li>
-        </template>
-      </draggable>
+            {{ categoryMap[t.categoryId || '']?.title }}
+          </span>
+          <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
-import draggable from 'vuedraggable'
-import { useFirebaseApp } from 'vuefire'
+  import { ref, computed, watch, onUnmounted } from 'vue'
+  import { useFirebaseApp } from 'vuefire'
 import {
   getFirestore,
   collection,
@@ -240,19 +233,6 @@ const toggle = async (i: number) => {
   if (t?.id) await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
     done: !t.done
   })
-}
-
-const reorder = async (newList: Todo[]) => {
-  if (!user.value) return
-  await Promise.all(
-    newList.map((t, idx) =>
-      t.id
-        ? updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
-            order: idx
-          })
-        : null
-    )
-  )
 }
 
 function textColor(bg: string) {
