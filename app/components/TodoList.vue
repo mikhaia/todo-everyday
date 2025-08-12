@@ -1,7 +1,14 @@
 <template>
   <div class="max-w-3xl">
-    <h2 class="text-2xl font-bold mb-4 flex items-center gap-1">
-      <span class="material-symbols-outlined">checklist</span>ToDo
+    <h2 class="text-2xl font-bold mb-4 flex items-center gap-1"
+      :style="{ color: activeCategory?.background? textColor(activeCategory?.background) : '' }">
+      <span
+        class="material-symbols-outlined text-4xl"
+        v-if="activeCategory?.icon"
+        >{{ activeCategory.icon }}</span
+      >
+      <span v-else class="material-symbols-outlined">checklist</span>
+      {{ activeCategory?.title || 'ToDo' }}
     </h2>
     <div class="space-y-2">
       <div class="flex gap-2">
@@ -19,35 +26,45 @@
         </select>
         <button @click="add" class="bg-brand text-white px-4 rounded">Add</button>
       </div>
+      <draggable
+        :modelValue="list"
+        item-key="id"
+        tag="ul"
+        class="space-y-2 animate__animated animate__fadeIn"
+        handle=".drag-handle"
+        :animation="200"
+        chosen-class="is-chosen"
+        ghost-class="is-ghost"
+        @update:modelValue="onReorder"
+      >
+        <template #item="{ element: t, index: i }">
+          <li>
+            <div class="bg-white border rounded p-2 flex items-center gap-2">
+              <span class="material-symbols-outlined drag-handle cursor-grab select-none">drag_indicator</span>
 
-      <ul class="space-y-2 animate__animated animate__fadeIn">
-        <li
-          v-for="(t,i) in list"
-          :key="t.id"
-          class="bg-white border rounded p-2 flex items-center gap-2"
-        >
-          <label class="flex items-center gap-2 flex-1">
-            <input type="checkbox" :checked="t.done" @change="toggle(i)" />
-            <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
-          </label>
-          <span
-            v-if="categoryMap[t.categoryId || '']"
-            class="text-xs px-2 py-1 rounded text-white flex items-center gap-1"
-            :style="{ background: categoryMap[t.categoryId || '']?.background }"
-          >
-            <span
-              v-if="categoryMap[t.categoryId || '']?.icon"
-              class="material-symbols-outlined"
-            >
-              {{ categoryMap[t.categoryId || '']?.icon }}
-            </span>
-            {{ categoryMap[t.categoryId || '']?.title }}
-          </span>
-          <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </li>
-      </ul>
+              <label class="flex items-center gap-2 flex-1">
+                <input class="w-5 h-5 accent-green-600" type="checkbox" :checked="t.done" @change="toggle(i)" />
+                <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
+              </label>
+
+              <span
+                v-if="t.categoryId && categoryMap[t.categoryId]"
+                class="text-xs px-2 py-1 rounded flex items-center gap-1"
+                :style="{ background: categoryMap[t.categoryId]?.background, color: textColor(categoryMap[t.categoryId]?.background || '') }"
+              >
+                <span v-if="categoryMap[t.categoryId]?.icon" class="material-symbols-outlined">
+                  {{ categoryMap[t.categoryId]?.icon }}
+                </span>
+                {{ categoryMap[t.categoryId]?.title }}
+              </span>
+
+              <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </li>
+        </template>
+      </draggable>
     </div>
   </div>
 </template>
@@ -65,16 +82,22 @@ import {
   query,
   where,
   orderBy,
-  onSnapshot
+  onSnapshot,
+  serverTimestamp,
+  Timestamp,
+  writeBatch
 } from 'firebase/firestore'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
+import draggable from 'vuedraggable'
 
 interface Todo {
   id?: string
   title: string
+  order: number
   date: string
   done: boolean
   categoryId: string | null
+  createdAt?: Timestamp | null
 }
 
 interface Category {
@@ -88,6 +111,10 @@ const day = useState('day', () => new Date().toISOString().slice(0, 10))
 const user = useState<{ uid: string } | null>('user', () => null)
 const categories = useState<Category[]>('categories', () => [])
 const activeCategoryId = useState<string>('activeCategoryId', () => '')
+
+const activeCategory = computed(() =>
+  categories.value.find((c) => c.id === activeCategoryId.value)
+)
 
 const app = useFirebaseApp()
 const db = getFirestore(app)
@@ -105,6 +132,11 @@ const categoryMap = computed<Record<string, Category>>(() => {
   return map
 })
 
+watch(activeCategoryId, id => {
+  categoryId.value = id
+}, { immediate: true })
+
+
 const loadMonth = (m: string) => {
   if (!user.value) return
   const start = format(startOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
@@ -112,9 +144,11 @@ const loadMonth = (m: string) => {
   if (off) off()
   const q = query(
     collection(db, 'users', user.value.uid, 'todos'),
-    orderBy('date'),
     where('date', '>=', start),
-    where('date', '<=', end)
+    where('date', '<=', end),
+    orderBy('date'),
+    orderBy('order'),
+    orderBy('createdAt', 'desc'),
   )
   off = onSnapshot(q, (snap) => {
     tasks.value = snap.docs.map((d) => {
@@ -122,7 +156,8 @@ const loadMonth = (m: string) => {
       return {
         id: d.id,
         ...data,
-        categoryId: data.categoryId ?? null
+        categoryId: data.categoryId ?? null,
+        createdAt: data.createdAt ?? null
       }
     })
   })
@@ -157,12 +192,14 @@ const add = async () => {
   if (!s || !user.value) return
   await addDoc(collection(db, 'users', user.value.uid, 'todos'), {
     title: s,
+    order: 0,
     date: day.value,
     done: false,
-    categoryId: categoryId.value || null
+    categoryId: categoryId.value || null,
+    createdAt: serverTimestamp()
   })
   title.value = ''
-  categoryId.value = ''
+  categoryId.value = activeCategoryId.value
 }
 
 const deleteTask = async (i: number) => {
@@ -177,5 +214,35 @@ const toggle = async (i: number) => {
   if (t?.id) await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
     done: !t.done
   })
+}
+
+
+const onReorder = async (newList: Todo[]) => {
+  if (!user.value) return
+  const batch = writeBatch(db)
+  newList.forEach((t, idx) => {
+    batch.update(doc(db, 'users', user.value!.uid, 'todos', t.id!), {
+      order: (idx + 1) * 1000,
+    })
+  })
+  await batch.commit()
+}
+
+function textColor(bg: string) {
+  const { r, g, b } = toRGB(bg);
+  const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return L > 0.6 ? '#111827' : '#ffffff';
+}
+
+function toRGB(color: string) {
+  if (!color) return { r: 0, g: 0, b: 0 };
+  if (color.startsWith('#')) {
+    const hex = color.slice(1).replace(/^(.)(.)(.)$/, '$1$1$2$2$3$3');
+    const num = parseInt(hex, 16);
+    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  }
+
+  const m = color.match(/\d+/g);
+  return m ? { r: +m[0], g: +Number(m[1]), b: +Number(m[2]) } : { r: 0, g: 0, b: 0 };
 }
 </script>
