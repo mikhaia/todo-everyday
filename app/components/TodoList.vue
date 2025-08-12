@@ -58,7 +58,7 @@
                 {{ categoryMap[t.categoryId]?.title }}
               </span>
 
-              <button class="text-blue-500" @click="openEdit(i)" aria-label="Edit task">
+              <button @click="openEdit(i)" aria-label="Edit task">
                 <span class="material-symbols-outlined">edit</span>
               </button>
               <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
@@ -225,6 +225,7 @@ const editCategoryId = ref('')
 
 const openEdit = (i: number) => {
   const t = list.value[i]
+  if (!t) return
   editIndex.value = i
   editTitle.value = t.title
   editCategoryId.value = t.categoryId || ''
@@ -239,12 +240,14 @@ const closeEdit = () => {
 const saveEdit = async () => {
   if (editIndex.value === null || !user.value) return
   const t = list.value[editIndex.value]
+  const title = editTitle.value.trim()
+  const categoryId = editCategoryId.value || null
+  closeEdit()
   if (t?.id)
     await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
-      title: editTitle.value.trim(),
-      categoryId: editCategoryId.value || null,
+      title,
+      categoryId,
     })
-  closeEdit()
 }
 
 const add = async () => {
