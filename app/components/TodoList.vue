@@ -1,7 +1,13 @@
 <template>
   <div class="max-w-3xl">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-1">
-      <span class="material-symbols-outlined">checklist</span>ToDo
+      <span
+        class="material-symbols-outlined"
+        v-if="activeCategory?.icon"
+        >{{ activeCategory.icon }}</span
+      >
+      <span v-else class="material-symbols-outlined">checklist</span>
+      {{ activeCategory?.title || 'ToDo' }}
     </h2>
     <div class="space-y-2">
       <div class="flex gap-2">
@@ -88,6 +94,10 @@ const day = useState('day', () => new Date().toISOString().slice(0, 10))
 const user = useState<{ uid: string } | null>('user', () => null)
 const categories = useState<Category[]>('categories', () => [])
 const activeCategoryId = useState<string>('activeCategoryId', () => '')
+
+const activeCategory = computed(() =>
+  categories.value.find((c) => c.id === activeCategoryId.value)
+)
 
 const app = useFirebaseApp()
 const db = getFirestore(app)

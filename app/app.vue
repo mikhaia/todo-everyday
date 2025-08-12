@@ -26,7 +26,10 @@
         </div>
         <AuthBlock />
       </aside>
-      <main class="flex-1 p-6">
+      <main
+        class="flex-1 p-6"
+        :style="{ background: activeCategory?.background || undefined }"
+      >
         <NuxtPage />
       </main>
     </div>
@@ -52,6 +55,12 @@ const day = useState('day', () =>
   new Date().toISOString().slice(0, 10)
 )
 const tasks = useState<Todo[]>('tasks', () => [])
+const categories = useState<{ id: string; background: string }[]>('categories', () => [])
+const activeCategoryId = useState<string>('activeCategoryId', () => '')
+
+const activeCategory = computed(() =>
+  categories.value.find((c) => c.id === activeCategoryId.value)
+)
 
 const dayMap = computed(() => {
   const map: Record<string, { total: number; done: number }> = {}
