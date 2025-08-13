@@ -1,7 +1,9 @@
 <template>
-  <div class="min-h-screen bg-gray-50 text-gray-900 font-sans">
+  <div class="min-h-screen bg-gray-50 text-gray-900 font-sans"
+    :style="{ background: activeCategory?.background || undefined, color: activeCategory?.background? textColor(activeCategory?.background) : '' }">
     <div class="flex min-h-screen">
-      <aside class="w-72 p-4 border-r flex flex-col justify-between bg-gray-600 text-white">
+      <aside class="w-72 p-4 flex flex-col justify-between bg-white/25 backdrop-blur-2xl backdrop-saturate-150 
+            border border-white/40 shadow-lg p-5">
         <div>
           <h1 class="flex items-center gap-2 text-lg font-bold">
             <span class="material-symbols-outlined">checklist</span> Todo
@@ -26,10 +28,7 @@
         </div>
         <AuthBlock />
       </aside>
-      <main
-        class="flex-1 p-6"
-        :style="{ background: activeCategory?.background || undefined }"
-      >
+      <main class="flex-1 p-6">
         <NuxtPage />
       </main>
     </div>
@@ -87,6 +86,24 @@ const getDayClass = (value: Date, _innerValue: Date[], classes: string) => {
 
 const onDateSelect = (newDate: string | Date) => {
   router.push(`/date/${newDate}`);
+}
+
+function textColor(bg: string) {
+  const { r, g, b } = toRGB(bg);
+  const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return L > 0.6 ? '#111827' : '#ffffff';
+}
+
+function toRGB(color: string) {
+  if (!color) return { r: 0, g: 0, b: 0 };
+  if (color.startsWith('#')) {
+    const hex = color.slice(1).replace(/^(.)(.)(.)$/, '$1$1$2$2$3$3');
+    const num = parseInt(hex, 16);
+    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  }
+
+  const m = color.match(/\d+/g);
+  return m ? { r: +m[0], g: +Number(m[1]), b: +Number(m[2]) } : { r: 0, g: 0, b: 0 };
 }
 </script>
 

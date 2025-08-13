@@ -15,10 +15,10 @@
           {{ c.title }}
         </span>
         <button @click="openModal(c)" class="bg-gray-50 rounded text-black" aria-label="Edit category" title="Edit category">
-          <span class="material-symbols-outlined text-sm p-1.5">edit</span>
+          <span class="material-symbols-outlined text-sm p-1.5 border rounded">edit</span>
         </button>
-        <button @click="confirmDelete(c)" class="bg-red-500 rounded" aria-label="Delete category" title="Delete category">
-          <span class="material-symbols-outlined text-sm p-1.5">delete</span>
+        <button @click="confirmDelete(c)" class="bg-red-500 rounded text-white" aria-label="Delete category" title="Delete category">
+          <span class="material-symbols-outlined text-sm p-1.5 border rounded">delete</span>
         </button>
       </li>
     </ul>
