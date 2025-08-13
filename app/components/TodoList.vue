@@ -137,6 +137,7 @@ interface Category {
   title: string
   icon: string
   background: string
+  image?: string
 }
 
 const day = useState('day', () => new Date().toISOString().slice(0, 10))
