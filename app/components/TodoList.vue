@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-3xl">
+  <div class="max-w-3xl text-black">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-1"
       :style="{ color: activeCategory?.background? textColor(activeCategory?.background) : '' }">
       <span
@@ -8,7 +8,7 @@
         >{{ activeCategory.icon }}</span
       >
       <span v-else class="material-symbols-outlined">checklist</span>
-      {{ activeCategory?.title || 'ToDo' }}
+      {{ activeCategory?.title || 'ToDo' }} :: {{ day }}
     </h2>
     <div class="space-y-2">
       <div class="flex gap-2">
@@ -148,6 +148,11 @@ const activeCategory = computed(() =>
   categories.value.find((c) => c.id === activeCategoryId.value)
 )
 
+const pageTitle = computed(
+  () => `${activeCategory.value?.title ?? 'Todo'} :: ${day.value} - Todo Everyday`
+)
+useHead({ title: pageTitle })
+
 const app = useFirebaseApp()
 const db = getFirestore(app)
 
@@ -253,6 +258,7 @@ const saveEdit = async () => {
 const add = async () => {
   const s = title.value.trim()
   if (!s || !user.value) return
+  title.value = ''
   await addDoc(collection(db, 'users', user.value.uid, 'todos'), {
     title: s,
     order: 0,
@@ -261,8 +267,6 @@ const add = async () => {
     categoryId: categoryId.value || null,
     createdAt: serverTimestamp()
   })
-  title.value = ''
-  categoryId.value = activeCategoryId.value
 }
 
 const deleteTask = async (i: number) => {
