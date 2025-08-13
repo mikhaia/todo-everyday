@@ -1,7 +1,11 @@
 <template>
   <div class="max-w-3xl text-black">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-1"
-      :style="{ color: activeCategory?.background? textColor(activeCategory?.background) : '' }">
+      :style="{
+        color: activeCategory?.image
+          ? '#fff'
+          : (activeCategory?.background ? textColor(activeCategory.background) : undefined)
+      }">
       <span
         class="material-symbols-outlined text-4xl"
         v-if="activeCategory?.icon"
@@ -137,6 +141,7 @@ interface Category {
   title: string
   icon: string
   background: string
+  image?: string
 }
 
 const day = useState('day', () => new Date().toISOString().slice(0, 10))
