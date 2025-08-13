@@ -1,6 +1,16 @@
 <template>
-  <div class="min-h-screen bg-gray-50 text-gray-900 font-sans"
-    :style="{ background: activeCategory?.background || undefined, color: activeCategory?.background? textColor(activeCategory?.background) : '' }">
+  <div
+    class="fixed min-h-screen inset-0 bg-cover bg-center opacity-90"
+    :style="{ backgroundImage: imageUrl ? `url('${imageUrl}')` : undefined }"
+  ></div>
+    <div
+    class="fixed min-h-screen inset-0 bg-cover bg-center z-[-1]"
+    :style="{ backgroundColor: activeCategory?.background || undefined }"
+  ></div>
+  <div class="min-h-screen text-gray-900 font-sans bg-cover bg-center relative z-1"
+    :style="{
+      color: activeCategory?.background ? textColor(activeCategory.background) : ''
+    }">
     <div class="flex min-h-screen">
       <aside class="w-72 p-4 flex flex-col justify-between bg-white/25 backdrop-blur-2xl backdrop-saturate-150 
             border border-white/40 shadow-lg p-5">
@@ -37,7 +47,8 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { computed } from 'vue'
+import { ref as vueRef, watch, computed } from 'vue'
+import { getStorage, ref as sref, getDownloadURL } from "firebase/storage"
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
 import { format } from 'date-fns'
@@ -46,6 +57,14 @@ import CategoryList from './components/CategoryList.vue'
 interface Todo {
   date: string
   done: boolean
+}
+
+interface Category {
+  id?: string
+  title: string
+  icon: string
+  background: string
+  image?: string
 }
 
 const router = useRouter()
@@ -58,8 +77,20 @@ const categories = useState<{ id: string; background: string }[]>('categories', 
 const activeCategoryId = useState<string>('activeCategoryId', () => '')
 
 const activeCategory = computed(() =>
-  categories.value.find((c) => c.id === activeCategoryId.value)
+  categories.value.find(c => c.id === activeCategoryId.value) as Category
 )
+const storage = getStorage()
+const imageUrl = ref<string>('')
+
+watch(() => activeCategory.value?.image, async (path) => {
+  if (!path) { imageUrl.value = ''; return }
+  try {
+    imageUrl.value = await getDownloadURL(sref(storage, path))
+  } catch (e) {
+    console.error('Error getting image:', e)
+    imageUrl.value = ''
+  }
+}, { immediate: true })
 
 const dayMap = computed(() => {
   const map: Record<string, { total: number; done: number }> = {}

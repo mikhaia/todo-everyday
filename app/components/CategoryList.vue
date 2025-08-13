@@ -75,6 +75,10 @@
               ></button>
             </div>
           </div>
+          <div>
+            <span class="block text-sm mb-1">Image</span>
+            <input type="file" accept="image/*" @change="onFileChange" />
+          </div>
         </div>
         <div class="mt-4 flex justify-end gap-2">
           <button @click="closeModal" class="px-3 py-1 bg-gray-200 rounded">
@@ -117,12 +121,14 @@ import {
   query,
   where
 } from 'firebase/firestore'
+import { getStorage, ref as storageRef, uploadBytes } from 'firebase/storage'
 
 interface Category {
   id?: string
   title: string
   icon: string
   background: string
+  image?: string
 }
 
 const user = useState<{ uid: string } | null>('user', () => null)
@@ -131,6 +137,7 @@ const activeCategoryId = useState<string>('activeCategoryId', () => '')
 
 const app = useFirebaseApp()
 const db = getFirestore(app)
+const storage = getStorage(app)
 
 let off: (() => void) | null = null
 
@@ -191,8 +198,23 @@ const colorOptions = [
 const newCategory = reactive({
   title: '',
   icon: iconOptions[0],
-  background: colorOptions[0]
+  background: colorOptions[0],
+  image: ''
 })
+
+const imageFile = ref<File | null>(null)
+
+const onFileChange = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (file) {
+    if (file.size > 1024 * 1024) {
+      alert('Image must be less than 1MB')
+      ;(e.target as HTMLInputElement).value = ''
+      return
+    }
+    imageFile.value = file
+  }
+}
 
 const openModal = (c?: Category) => {
   if (!user.value) return
@@ -201,17 +223,22 @@ const openModal = (c?: Category) => {
     newCategory.title = c.title
     newCategory.icon = c.icon
     newCategory.background = c.background
+    newCategory.image = c.image || ''
+    imageFile.value = null
   } else {
     editingId.value = null
     newCategory.title = ''
     newCategory.icon = iconOptions[0]
     newCategory.background = colorOptions[0]
+    newCategory.image = ''
+    imageFile.value = null
   }
   showModal.value = true
 }
 
 const closeModal = () => {
   showModal.value = false
+  imageFile.value = null
 }
 
 const saveCategory = async () => {
@@ -219,24 +246,40 @@ const saveCategory = async () => {
   const title = newCategory.title.trim()
   if (!title) return
   if (editingId.value) {
+    let imagePath = newCategory.image || ''
+    if (imageFile.value) {
+      const path = `users/${user.value.uid}/categories/${editingId.value}/${imageFile.value.name}`
+      const sRef = storageRef(storage, path)
+      await uploadBytes(sRef, imageFile.value)
+      imagePath = path
+    }
     await updateDoc(
       doc(db, 'users', user.value.uid, 'categories', editingId.value),
       {
         title,
         icon: newCategory.icon?.trim(),
-        background: newCategory.background
+        background: newCategory.background,
+        image: imagePath
       }
     )
   } else {
-    await addDoc(collection(db, 'users', user.value.uid, 'categories'), {
+    const docRef = await addDoc(collection(db, 'users', user.value.uid, 'categories'), {
       title,
       icon: newCategory.icon?.trim(),
       background: newCategory.background
     })
+    if (imageFile.value) {
+      const path = `users/${user.value.uid}/categories/${docRef.id}/${imageFile.value.name}`
+      const sRef = storageRef(storage, path)
+      await uploadBytes(sRef, imageFile.value)
+      await updateDoc(docRef, { image: path })
+    }
   }
   newCategory.title = ''
   newCategory.icon = iconOptions[0]
   newCategory.background = colorOptions[0]
+  newCategory.image = ''
+  imageFile.value = null
   editingId.value = null
   showModal.value = false
 }
