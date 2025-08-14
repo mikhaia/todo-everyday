@@ -13,12 +13,28 @@
       >
       <span v-else class="material-symbols-outlined">checklist</span>
       {{ activeCategory?.title || 'ToDo' }} :: {{ day }}
-      <button
-        v-if="user"
-        @click="shareList"
-        class="ml-auto material-symbols-outlined text-base"
-        aria-label="Share list"
-      >share</button>
+      <div v-if="user" class="ml-auto flex items-center gap-2">
+        <button
+          v-if="!shareId"
+          @click="shareList"
+          class="material-symbols-outlined text-base"
+          aria-label="Share list"
+        >share</button>
+        <template v-else>
+          <input
+            type="text"
+            readonly
+            :value="shareUrl"
+            class="border rounded px-2 py-1 w-52 bg-white/70"
+            @focus="$event.target.select()"
+          />
+          <button
+            @click="unshareList"
+            class="material-symbols-outlined text-base"
+            aria-label="Make list private"
+          >link_off</button>
+        </template>
+      </div>
     </h2>
     <div class="space-y-2">
       <div class="flex flex-col md:flex-row gap-2">
@@ -127,6 +143,7 @@ import {
   deleteDoc,
   doc,
   query,
+  getDocs,
   where,
   orderBy,
   onSnapshot,
@@ -176,6 +193,13 @@ const tasks = useState<Todo[]>('tasks', () => [])
 const month = computed(() => day.value.slice(0, 7))
 let off: (() => void) | null = null
 
+const shareId = ref<string | null>(null)
+const shareUrl = computed(() =>
+  shareId.value
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/share/${shareId.value}`
+    : ''
+)
+
 const categoryId = ref('')
 const categoryMap = computed<Record<string, Category>>(() => {
   const map: Record<string, Category> = {}
@@ -188,6 +212,20 @@ const categoryMap = computed<Record<string, Category>>(() => {
 watch(activeCategoryId, id => {
   categoryId.value = id
 }, { immediate: true })
+
+const loadShare = async () => {
+  if (!user.value) { shareId.value = null; return }
+  const q = query(
+    collection(db, 'share'),
+    where('uid', '==', user.value.uid),
+    where('date', '==', day.value),
+    where('categoryId', '==', activeCategoryId.value || '')
+  )
+  const snap = await getDocs(q)
+  shareId.value = snap.empty ? null : snap.docs[0].id
+}
+
+watch([user, day, activeCategoryId], loadShare, { immediate: true })
 
 
 const loadMonth = (m: string) => {
@@ -317,19 +355,26 @@ const onReorder = async (newList: Todo[]) => {
 }
 
 const shareList = async () => {
-  if (!user.value) return
+  if (!user.value || shareId.value) return
   const docRef = await addDoc(collection(db, 'share'), {
     uid: user.value.uid,
     date: day.value,
     categoryId: activeCategoryId.value || '',
   })
-  const url = `${window.location.origin}/share/${docRef.id}`
+  shareId.value = docRef.id
+  const url = shareUrl.value
   try {
     await navigator.clipboard.writeText(url)
     alert('Link copied to clipboard')
   } catch (e) {
     window.prompt('Share this link', url)
   }
+}
+
+const unshareList = async () => {
+  if (!shareId.value) return
+  await deleteDoc(doc(db, 'share', shareId.value))
+  shareId.value = null
 }
 
 function textColor(bg: string) {
