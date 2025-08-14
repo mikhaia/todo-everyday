@@ -14,6 +14,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/tailwind.css', 'animate.css/animate.min.css'],
   app: {
     head: {
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+      ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap' },
