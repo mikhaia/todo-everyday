@@ -2,4 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --brand:#10b981; } /* default theme */
+:root {
+    --brand:#10b981;
+    --primary: #333;
+    --secondary: #d97706;
+}
