@@ -24,7 +24,7 @@
     </ul>
     <button
       @click="openModal()"
-      class="mt-2 bg-brand text-white px-3 py-1 rounded w-full"
+      class="mt-2 bg-primary text-white px-3 py-1 rounded w-full"
     >
       + Add category
     </button>
@@ -52,7 +52,7 @@
                 @click="newCategory.icon = icon"
                 :class="[
                   'p-2 border rounded flex items-center justify-center',
-                  newCategory.icon === icon ? 'bg-brand text-white' : 'bg-gray-100'
+                  newCategory.icon === icon ? 'bg-primary text-white' : 'bg-gray-100'
                 ]"
               >
                 <span class="material-symbols-outlined">{{ icon }}</span>
@@ -70,7 +70,7 @@
                 :style="{ background: color }"
                 :class="[
                   'w-8 h-8 rounded',
-                  newCategory.background === color ? 'ring-2 ring-offset-2 ring-brand' : ''
+                  newCategory.background === color ? 'ring-2 ring-offset-2 ring-primary' : ''
                 ]"
               ></button>
             </div>
@@ -84,7 +84,7 @@
           <button @click="closeModal" class="px-3 py-1 bg-gray-200 rounded">
             Cancel
           </button>
-          <button @click="saveCategory" class="px-3 py-1 bg-brand text-white rounded">
+          <button @click="saveCategory" class="px-3 py-1 bg-primary text-white rounded">
             Save
           </button>
         </div>

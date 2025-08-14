@@ -8,12 +8,14 @@
     :style="{ backgroundColor: activeCategory?.background || undefined }"
   ></div>
   <div class="min-h-screen text-gray-900 font-sans bg-cover bg-center relative z-1"
+    :class="{ 'bg-gray-300': !activeCategory?.background }"
     :style="{
       color: activeCategory?.background ? textColor(activeCategory.background) : ''
     }">
     <div class="flex min-h-screen">
-      <aside class="w-72 p-4 flex flex-col justify-between bg-white/25 backdrop-blur-2xl backdrop-saturate-150 
-            border border-white/40 shadow-lg p-5">
+      <div class="w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150 
+            border border-white/40 shadow-lg p-5 fixed h-full"></div>
+      <aside class="w-72 flex flex-col justify-between p-5 relative">
         <div>
           <h1 class="flex items-center gap-2 text-lg font-bold">
             <span class="material-symbols-outlined">checklist</span> Todo
@@ -25,6 +27,7 @@
               type="date"
               format="YYYY-MM-DD"
               value-type="format"
+              :lang="lang"
               :open="true"
               :editable="false"
               :clearable="false"
@@ -79,16 +82,27 @@ const activeCategoryId = useState<string>('activeCategoryId', () => '')
 const activeCategory = computed(() =>
   categories.value.find(c => c.id === activeCategoryId.value) as Category
 )
+
 const storage = getStorage()
 const imageUrl = ref<string>('')
+const urlCache = new Map<string, string>()
 
 watch(() => activeCategory.value?.image, async (path) => {
   if (!path) { imageUrl.value = ''; return }
+
+  const cached = urlCache.get(path);
+  if (cached) { imageUrl.value = cached; return }
+
+  const currentPath = path;
   try {
-    imageUrl.value = await getDownloadURL(sref(storage, path))
+    const url = await getDownloadURL(sref(storage, path));
+    if (activeCategory.value?.image === currentPath) {
+      urlCache.set(path, url)
+      imageUrl.value = url
+    }
   } catch (e) {
     console.error('Error getting image:', e)
-    imageUrl.value = ''
+    if (activeCategory.value?.image === currentPath) imageUrl.value = '';
   }
 }, { immediate: true })
 
@@ -101,6 +115,10 @@ const dayMap = computed(() => {
   }
   return map
 })
+
+const lang = {
+  formatLocale: { firstDayOfWeek: 1 },
+}
 
 const getDayClass = (value: Date, _innerValue: Date[], classes: string) => {
   const date = format(value, 'yyyy-MM-dd')

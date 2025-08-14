@@ -28,7 +28,7 @@
             {{ c.title }}
           </option>
         </select>
-        <button @click="add" class="bg-brand text-white px-4 rounded">Add</button>
+        <button @click="add" class="bg-primary text-white px-4 rounded">Add</button>
       </div>
       <draggable
         :modelValue="list"
@@ -96,7 +96,7 @@
           <button @click="closeEdit" class="px-4 py-2 rounded border">
             Cancel
           </button>
-          <button @click="saveEdit" class="bg-brand text-white px-4 py-2 rounded">
+          <button @click="saveEdit" class="bg-primary text-white px-4 py-2 rounded">
             Save
           </button>
         </div>
