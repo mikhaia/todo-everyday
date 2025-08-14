@@ -1,4 +1,5 @@
 <template>
+  <LoadingOverlay v-if="loading" />
   <div class="max-w-3xl text-black">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-1"
       :style="{
@@ -13,6 +14,28 @@
       >
       <span v-else class="material-symbols-outlined">checklist</span>
       {{ activeCategory?.title || 'ToDo' }} :: {{ day }}
+      <div v-if="user" class="ml-auto flex items-center gap-2">
+        <button
+          v-if="!shareId"
+          @click="shareList"
+          class="material-symbols-outlined text-base"
+          aria-label="Share list"
+        >share</button>
+        <template v-else>
+          <input
+            type="text"
+            readonly
+            :value="shareUrl"
+            class="border rounded px-2 py-1 w-52 bg-white/70"
+            @focus="$event.target.select()"
+          />
+          <button
+            @click="unshareList"
+            class="material-symbols-outlined text-base"
+            aria-label="Make list private"
+          >link_off</button>
+        </template>
+      </div>
     </h2>
     <div class="space-y-2">
       <div class="flex flex-col md:flex-row gap-2">
@@ -121,6 +144,7 @@ import {
   deleteDoc,
   doc,
   query,
+  getDocs,
   where,
   orderBy,
   onSnapshot,
@@ -130,6 +154,7 @@ import {
 } from 'firebase/firestore'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import draggable from 'vuedraggable'
+import { textColor } from '../utils/color'
 
 interface Todo {
   id?: string
@@ -167,8 +192,16 @@ const app = useFirebaseApp()
 const db = getFirestore(app)
 
 const tasks = useState<Todo[]>('tasks', () => [])
+const loading = ref(true)
 const month = computed(() => day.value.slice(0, 7))
 let off: (() => void) | null = null
+
+const shareId = ref<string | null>(null)
+const shareUrl = computed(() =>
+  shareId.value
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/share/${shareId.value}`
+    : ''
+)
 
 const categoryId = ref('')
 const categoryMap = computed<Record<string, Category>>(() => {
@@ -183,12 +216,27 @@ watch(activeCategoryId, id => {
   categoryId.value = id
 }, { immediate: true })
 
+const loadShare = async () => {
+  if (!user.value) { shareId.value = null; return }
+  const q = query(
+    collection(db, 'share'),
+    where('uid', '==', user.value.uid),
+    where('date', '==', day.value),
+    where('categoryId', '==', activeCategoryId.value || '')
+  )
+  const snap = await getDocs(q)
+  shareId.value = snap.empty ? null : snap.docs[0].id
+}
+
+watch([user, day, activeCategoryId], loadShare, { immediate: true })
+
 
 const loadMonth = (m: string) => {
   if (!user.value) return
   const start = format(startOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
   const end = format(endOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
   if (off) off()
+  loading.value = true
   const q = query(
     collection(db, 'users', user.value.uid, 'todos'),
     where('date', '>=', start),
@@ -207,6 +255,7 @@ const loadMonth = (m: string) => {
         createdAt: data.createdAt ?? null
       }
     })
+    loading.value = false
   })
 }
 
@@ -218,6 +267,7 @@ watch([user, month], ([u, m]) => {
       off()
       off = null
     }
+    loading.value = false
   }
 }, { immediate: true })
 
@@ -310,21 +360,26 @@ const onReorder = async (newList: Todo[]) => {
   await batch.commit()
 }
 
-function textColor(bg: string) {
-  const { r, g, b } = toRGB(bg);
-  const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return L > 0.6 ? '#111827' : '#ffffff';
+const shareList = async () => {
+  if (!user.value || shareId.value) return
+  const docRef = await addDoc(collection(db, 'share'), {
+    uid: user.value.uid,
+    date: day.value,
+    categoryId: activeCategoryId.value || '',
+  })
+  shareId.value = docRef.id
+  const url = shareUrl.value
+  try {
+    await navigator.clipboard.writeText(url)
+    alert('Link copied to clipboard')
+  } catch (e) {
+    window.prompt('Share this link', url)
+  }
 }
 
-function toRGB(color: string) {
-  if (!color) return { r: 0, g: 0, b: 0 };
-  if (color.startsWith('#')) {
-    const hex = color.slice(1).replace(/^(.)(.)(.)$/, '$1$1$2$2$3$3');
-    const num = parseInt(hex, 16);
-    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
-  }
-
-  const m = color.match(/\d+/g);
-  return m ? { r: +m[0], g: +Number(m[1]), b: +Number(m[2]) } : { r: 0, g: 0, b: 0 };
+const unshareList = async () => {
+  if (!shareId.value) return
+  await deleteDoc(doc(db, 'share', shareId.value))
+  shareId.value = null
 }
 </script>
