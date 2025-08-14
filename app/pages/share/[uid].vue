@@ -21,6 +21,7 @@ import { useRoute } from 'vue-router'
 import { useFirebaseApp } from 'vuefire'
 import { getFirestore, doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import { ref, computed, onMounted } from 'vue'
+import { showError } from '#app'
 
 interface Share { uid: string; date: string; categoryId: string }
 interface Todo { id?: string; title: string; done: boolean; categoryId: string | null; order: number; createdAt?: any }
@@ -45,7 +46,10 @@ const headerStyle = computed(() => ({
 onMounted(async () => {
   const id = route.params.uid as string
   const snap = await getDoc(doc(db, 'share', id))
-  if (!snap.exists()) return
+  if (!snap.exists()) {
+    showError({ statusCode: 404, statusMessage: 'Shared list not found' })
+    return
+  }
   share.value = snap.data() as Share
   const { uid, date, categoryId } = share.value
   let q = query(
