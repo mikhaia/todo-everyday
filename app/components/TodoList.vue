@@ -15,20 +15,20 @@
       {{ activeCategory?.title || 'ToDo' }} :: {{ day }}
     </h2>
     <div class="space-y-2">
-      <div class="flex gap-2">
+      <div class="flex flex-col md:flex-row gap-2">
         <input
           v-model="title"
           @keyup.enter="add"
           placeholder="New task…"
-          class="border rounded px-3 py-2 flex-1"
+          class="border rounded px-3 py-2 flex-1 w-full"
         />
-        <select v-model="categoryId" class="border rounded px-2">
+        <select v-model="categoryId" class="border rounded px-2 w-full md:w-auto">
           <option value="">No category</option>
           <option v-for="c in categories" :key="c.id" :value="c.id">
             {{ c.title }}
           </option>
         </select>
-        <button @click="add" class="bg-primary text-white px-4 rounded">Add</button>
+        <button @click="add" class="bg-primary text-white px-4 rounded w-full md:w-auto">Add</button>
       </div>
       <draggable
         :modelValue="list"
@@ -75,7 +75,7 @@
     </div>
     <div
       v-if="editIndex !== null"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-[3000]"
     >
       <div class="bg-white p-6 rounded shadow max-w-sm w-full">
         <h3 class="text-lg font-bold mb-4">Edit task</h3>
