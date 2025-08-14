@@ -12,10 +12,18 @@
     :style="{
       color: activeCategory?.background ? textColor(activeCategory.background) : ''
     }">
+    <button
+      class="md:hidden absolute top-4 left-4 z-10 p-2 bg-white rounded shadow"
+      @click="sidebarOpen = !sidebarOpen"
+    >
+      <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
+    </button>
     <div class="flex flex-col md:flex-row min-h-screen">
       <div class="hidden md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
             border border-white/40 shadow-lg p-5 fixed h-full"></div>
-      <aside class="w-full md:w-72 flex flex-col justify-between p-5 relative">
+      <aside
+        :class="[sidebarOpen ? 'block' : 'hidden', 'md:block w-full md:w-72 flex flex-col justify-between p-5 relative']"
+      >
         <div>
           <h1 class="flex items-center gap-2 text-lg font-bold">
             <span class="material-symbols-outlined">checklist</span> Todo
@@ -50,7 +58,7 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { ref as vueRef, watch, computed } from 'vue'
+import { watch, computed } from 'vue'
 import { getStorage, ref as sref, getDownloadURL } from "firebase/storage"
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
@@ -84,6 +92,7 @@ const activeCategory = computed(() =>
 )
 
 const storage = getStorage()
+const sidebarOpen = ref(true)
 const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
 
