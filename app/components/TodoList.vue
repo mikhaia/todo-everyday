@@ -85,13 +85,18 @@
         />
         <select
           v-model="editCategoryId"
-          class="border rounded px-3 py-2 w-full mb-4"
+          class="border rounded px-3 py-2 w-full mb-2"
         >
           <option value="">No category</option>
           <option v-for="c in categories" :key="c.id" :value="c.id">
             {{ c.title }}
           </option>
         </select>
+        <input
+          type="date"
+          v-model="editDate"
+          class="border rounded px-3 py-2 w-full mb-4"
+        />
         <div class="flex justify-end gap-2">
           <button @click="closeEdit" class="px-4 py-2 rounded border">
             Cancel
@@ -232,6 +237,7 @@ const title = ref('')
 const editIndex = ref<number | null>(null)
 const editTitle = ref('')
 const editCategoryId = ref('')
+const editDate = ref('')
 
 const openEdit = (i: number) => {
   const t = list.value[i]
@@ -239,12 +245,14 @@ const openEdit = (i: number) => {
   editIndex.value = i
   editTitle.value = t.title
   editCategoryId.value = t.categoryId || ''
+  editDate.value = t.date
 }
 
 const closeEdit = () => {
   editIndex.value = null
   editTitle.value = ''
   editCategoryId.value = ''
+  editDate.value = ''
 }
 
 const saveEdit = async () => {
@@ -252,11 +260,13 @@ const saveEdit = async () => {
   const t = list.value[editIndex.value]
   const title = editTitle.value.trim()
   const categoryId = editCategoryId.value || null
+  const date = editDate.value
   closeEdit()
   if (t?.id)
     await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
       title,
       categoryId,
+      date,
     })
 }
 
