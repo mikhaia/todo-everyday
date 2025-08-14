@@ -1,4 +1,5 @@
 <template>
+  <LoadingOverlay v-if="loading" />
   <div class="max-w-3xl text-black">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-1" :style="headerStyle">
       <span class="material-symbols-outlined text-4xl" v-if="category?.icon">{{ category.icon }}</span>
@@ -37,6 +38,7 @@ const tasks = useState<Todo[]>('tasks', () => [])
 const category = ref<Category | null>(null)
 const categories = useState<Category[]>('categories', () => [])
 const activeCategoryId = useState<string>('activeCategoryId', () => '')
+const loading = ref(true)
 
 const headerStyle = computed(() => ({
   color: category.value?.image
@@ -48,6 +50,7 @@ onMounted(async () => {
   const id = route.params.uid as string
   const snap = await getDoc(doc(db, 'share', id))
   if (!snap.exists()) {
+    loading.value = false
     showError({ statusCode: 404, statusMessage: 'Shared list not found' })
     return
   }
@@ -73,5 +76,6 @@ onMounted(async () => {
     categories.value = []
     activeCategoryId.value = ''
   }
+  loading.value = false
 })
 </script>

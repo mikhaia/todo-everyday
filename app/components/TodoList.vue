@@ -1,4 +1,5 @@
 <template>
+  <LoadingOverlay v-if="loading" />
   <div class="max-w-3xl text-black">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-1"
       :style="{
@@ -191,6 +192,7 @@ const app = useFirebaseApp()
 const db = getFirestore(app)
 
 const tasks = useState<Todo[]>('tasks', () => [])
+const loading = ref(true)
 const month = computed(() => day.value.slice(0, 7))
 let off: (() => void) | null = null
 
@@ -234,6 +236,7 @@ const loadMonth = (m: string) => {
   const start = format(startOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
   const end = format(endOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
   if (off) off()
+  loading.value = true
   const q = query(
     collection(db, 'users', user.value.uid, 'todos'),
     where('date', '>=', start),
@@ -252,6 +255,7 @@ const loadMonth = (m: string) => {
         createdAt: data.createdAt ?? null
       }
     })
+    loading.value = false
   })
 }
 
@@ -263,6 +267,7 @@ watch([user, month], ([u, m]) => {
       off()
       off = null
     }
+    loading.value = false
   }
 }, { immediate: true })
 
