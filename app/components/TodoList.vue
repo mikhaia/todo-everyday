@@ -13,6 +13,12 @@
       >
       <span v-else class="material-symbols-outlined">checklist</span>
       {{ activeCategory?.title || 'ToDo' }} :: {{ day }}
+      <button
+        v-if="user"
+        @click="shareList"
+        class="ml-auto material-symbols-outlined text-base"
+        aria-label="Share list"
+      >share</button>
     </h2>
     <div class="space-y-2">
       <div class="flex flex-col md:flex-row gap-2">
@@ -308,6 +314,22 @@ const onReorder = async (newList: Todo[]) => {
     })
   })
   await batch.commit()
+}
+
+const shareList = async () => {
+  if (!user.value) return
+  const docRef = await addDoc(collection(db, 'share'), {
+    uid: user.value.uid,
+    date: day.value,
+    categoryId: activeCategoryId.value || '',
+  })
+  const url = `${window.location.origin}/share/${docRef.id}`
+  try {
+    await navigator.clipboard.writeText(url)
+    alert('Link copied to clipboard')
+  } catch (e) {
+    window.prompt('Share this link', url)
+  }
 }
 
 function textColor(bg: string) {

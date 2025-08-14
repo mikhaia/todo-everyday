@@ -13,15 +13,19 @@
       color: activeCategory?.background ? textColor(activeCategory.background) : ''
     }">
     <button
+      v-if="!isShareRoute"
       class="md:hidden absolute top-4 left-4 z-20 p-2 bg-white rounded shadow"
       @click="sidebarOpen = !sidebarOpen"
     >
       <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
     </button>
     <div class="flex flex-col md:flex-row min-h-screen">
-      <div class="hidden md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
+      <div
+        v-if="!isShareRoute"
+        class="hidden md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
             border border-white/40 shadow-lg p-5 fixed h-full"></div>
       <aside
+        v-if="!isShareRoute"
         :class="[
           'fixed md:static top-0 left-0 h-full w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150 border border-white/40 shadow-lg flex flex-col justify-between p-5 transition-transform duration-300 z-10',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
@@ -99,6 +103,7 @@ const storage = getStorage()
 const sidebarOpen = ref(false)
 const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
+const isShareRoute = computed(() => route.path.startsWith('/share'))
 
 watch(() => activeCategory.value?.image, async (path) => {
   if (!path) { imageUrl.value = ''; return }
