@@ -22,18 +22,19 @@
     <div class="flex flex-col md:flex-row min-h-screen">
       <div
         v-if="!isShareRoute"
-        class="hidden md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
-            border border-white/40 shadow-lg p-5 fixed h-full"></div>
+        class="md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
+            border border-white/40 shadow-lg p-5 fixed h-full z-10 transition-transform duration-300"
+        :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', 'md:translate-x-0']"></div>
       <aside
         v-if="!isShareRoute"
         :class="[
-          'fixed md:static top-0 left-0 h-full w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150 border border-white/40 shadow-lg flex flex-col justify-between p-5 transition-transform duration-300 z-10',
+          'fixed md:relative top-0 left-0 h-full md:h-auto w-72 flex flex-col justify-between p-5 transition-transform duration-300 z-10',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           'md:translate-x-0'
         ]"
       >
         <div>
-          <h1 class="flex items-center gap-2 text-lg font-bold">
+          <h1 class="flex items-center gap-2 text-2xl font-bold justify-center">
             <span class="material-symbols-outlined">checklist</span> Todo
           </h1>
           <div class="space-y-2 h-[300px]">
