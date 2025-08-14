@@ -1,7 +1,7 @@
 <template>
   <LoadingOverlay v-if="loading" />
   <div class="max-w-3xl text-black">
-    <h2 class="text-2xl font-bold mb-4 flex items-center gap-1 pb-2"
+    <h2 class="text-2xl font-bold flex items-center gap-1 pb-2"
       :style="{
         color: activeCategory?.image
           ? '#fff'
@@ -22,22 +22,21 @@
           class="material-symbols-outlined"
           aria-label="Share list"
         >share</button>
-        <template v-else>
-          <button
-            @click="unshareList"
-            class="material-symbols-outlined"
-            aria-label="Make list private"
-          >link_off</button>
-        </template>
+        <button v-else
+          @click="unshareList"
+          class="material-symbols-outlined"
+          aria-label="Make list private"
+        >link_off</button>
       </div>
     </h2>
     <input
-        type="text"
-        readonly
-        :value="shareUrl"
-        class="border rounded p-2 w-full bg-white/70 mb-2"
-        @focus="(e) => (e.target as HTMLInputElement).select()"
-      />
+      v-if="shareId"
+      type="text"
+      readonly
+      :value="shareUrl"
+      class="border rounded p-2 w-full bg-white/70 mb-2"
+      @focus="(e) => (e.target as HTMLInputElement).select()"
+    />
     <div class="space-y-2">
       <div class="flex flex-col md:flex-row gap-2">
         <input
