@@ -24,7 +24,7 @@
     </ul>
     <button
       @click="openModal()"
-      class="mt-2 bg-primary text-white px-3 py-1 rounded w-full"
+      class="mt-2 bg-primary text-white p-2 rounded w-full shadow-[0_0_2px_white]"
     >
       + Add category
     </button>

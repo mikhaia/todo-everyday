@@ -1,42 +1,42 @@
 <template>
   <LoadingOverlay v-if="loading" />
   <div class="max-w-3xl text-black">
-    <h2 class="text-2xl font-bold mb-4 flex items-center gap-1"
+    <h2 class="text-2xl font-bold flex items-center gap-1 pb-2"
       :style="{
         color: activeCategory?.image
           ? '#fff'
           : (activeCategory?.background ? textColor(activeCategory.background) : undefined)
       }">
       <span
-        class="material-symbols-outlined text-4xl"
+        class="material-symbols-outlined text-4xl ml-auto md:ml-0"
         v-if="activeCategory?.icon"
-        >{{ activeCategory.icon }}</span
-      >
-      <span v-else class="material-symbols-outlined">checklist</span>
+        >
+        {{ activeCategory.icon }}
+      </span>
+      <span v-else class="material-symbols-outlined ml-auto md:ml-0">checklist</span>
       {{ activeCategory?.title || 'ToDo' }} :: {{ day }}
       <div v-if="user" class="ml-auto flex items-center gap-2">
         <button
           v-if="!shareId"
           @click="shareList"
-          class="material-symbols-outlined text-base"
+          class="material-symbols-outlined"
           aria-label="Share list"
         >share</button>
-        <template v-else>
-          <input
-            type="text"
-            readonly
-            :value="shareUrl"
-            class="border rounded px-2 py-1 w-52 bg-white/70"
-            @focus="$event.target.select()"
-          />
-          <button
-            @click="unshareList"
-            class="material-symbols-outlined text-base"
-            aria-label="Make list private"
-          >link_off</button>
-        </template>
+        <button v-else
+          @click="unshareList"
+          class="material-symbols-outlined"
+          aria-label="Make list private"
+        >link_off</button>
       </div>
     </h2>
+    <input
+      v-if="shareId"
+      type="text"
+      readonly
+      :value="shareUrl"
+      class="border rounded p-2 w-full bg-white/70 mb-2"
+      @focus="(e) => (e.target as HTMLInputElement).select()"
+    />
     <div class="space-y-2">
       <div class="flex flex-col md:flex-row gap-2">
         <input
@@ -45,13 +45,15 @@
           placeholder="New task…"
           class="border rounded px-3 py-2 flex-1 w-full"
         />
-        <select v-model="categoryId" class="border rounded px-2 w-full md:w-auto">
-          <option value="">No category</option>
-          <option v-for="c in categories" :key="c.id" :value="c.id">
-            {{ c.title }}
-          </option>
-        </select>
-        <button @click="add" class="bg-primary text-white px-4 rounded w-full md:w-auto">Add</button>
+        <div class="flex flex-row gap-2 h-10">
+          <select v-model="categoryId" class="border rounded px-2 w-full md:w-auto">
+            <option value="">No category</option>
+            <option v-for="c in categories" :key="c.id" :value="c.id">
+              {{ c.title }}
+            </option>
+          </select>
+          <button @click="add" class="bg-primary text-white px-4 rounded w-full md:w-auto shadow-[0_0_2px_white]">Add</button>
+        </div>
       </div>
       <draggable
         :modelValue="list"
