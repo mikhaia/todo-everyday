@@ -77,7 +77,12 @@
           </div>
           <div>
             <span class="block text-sm mb-1">Image</span>
-            <input type="file" accept="image/*" @change="onFileChange" />
+            <div v-if="newCategory.image" class="flex items-center gap-2">
+              <button type="button" @click="removeImage" class="px-2 py-1 bg-red-500 text-white rounded">
+                Remove image
+              </button>
+            </div>
+            <input v-else type="file" accept="image/*" @change="onFileChange" />
           </div>
         </div>
         <div class="mt-4 flex justify-end gap-2">
@@ -119,9 +124,10 @@ import {
   deleteDoc,
   getDocs,
   query,
-  where
+  where,
+  deleteField
 } from 'firebase/firestore'
-import { getStorage, ref as storageRef, uploadBytes } from 'firebase/storage'
+import { getStorage, ref as storageRef, uploadBytes, deleteObject } from 'firebase/storage'
 
 interface Category {
   id?: string
@@ -214,6 +220,19 @@ const onFileChange = (e: Event) => {
     }
     imageFile.value = file
   }
+}
+
+const removeImage = async () => {
+  if (!user.value || !editingId.value || !newCategory.image) return
+  try {
+    await deleteObject(storageRef(storage, newCategory.image))
+  } catch (e) {
+    console.error('Error deleting image from storage', e)
+  }
+  await updateDoc(doc(db, 'users', user.value.uid, 'categories', editingId.value), {
+    image: deleteField()
+  })
+  newCategory.image = ''
 }
 
 const openModal = (c?: Category) => {
