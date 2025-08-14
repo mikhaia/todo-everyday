@@ -13,15 +13,19 @@
       color: activeCategory?.background ? textColor(activeCategory.background) : ''
     }">
     <button
+      v-if="!isShareRoute"
       class="md:hidden absolute top-4 left-4 z-20 p-2 bg-white rounded shadow"
       @click="sidebarOpen = !sidebarOpen"
     >
       <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
     </button>
     <div class="flex flex-col md:flex-row min-h-screen">
-      <div class="hidden md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
+      <div
+        v-if="!isShareRoute"
+        class="hidden md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
             border border-white/40 shadow-lg p-5 fixed h-full"></div>
       <aside
+        v-if="!isShareRoute"
         :class="[
           'fixed md:static top-0 left-0 h-full w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150 border border-white/40 shadow-lg flex flex-col justify-between p-5 transition-transform duration-300 z-10',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
@@ -68,6 +72,7 @@ import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
 import { format } from 'date-fns'
 import CategoryList from './components/CategoryList.vue'
+import { textColor } from './utils/color'
 
 interface Todo {
   date: string
@@ -99,6 +104,7 @@ const storage = getStorage()
 const sidebarOpen = ref(false)
 const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
+const isShareRoute = computed(() => route.path.startsWith('/share'))
 
 watch(() => activeCategory.value?.image, async (path) => {
   if (!path) { imageUrl.value = ''; return }
@@ -148,24 +154,6 @@ const getDayClass = (value: Date, _innerValue: Date[], classes: string) => {
 
 const onDateSelect = (newDate: string | Date) => {
   router.push(`/date/${newDate}`);
-}
-
-function textColor(bg: string) {
-  const { r, g, b } = toRGB(bg);
-  const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return L > 0.6 ? '#111827' : '#ffffff';
-}
-
-function toRGB(color: string) {
-  if (!color) return { r: 0, g: 0, b: 0 };
-  if (color.startsWith('#')) {
-    const hex = color.slice(1).replace(/^(.)(.)(.)$/, '$1$1$2$2$3$3');
-    const num = parseInt(hex, 16);
-    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
-  }
-
-  const m = color.match(/\d+/g);
-  return m ? { r: +m[0], g: +Number(m[1]), b: +Number(m[2]) } : { r: 0, g: 0, b: 0 };
 }
 </script>
 
