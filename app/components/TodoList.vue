@@ -98,40 +98,6 @@
         </template>
       </draggable>
     </div>
-    <div
-      v-if="editIndex !== null"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-[3000]"
-    >
-      <div class="bg-white p-6 rounded shadow max-w-sm w-full">
-        <h3 class="text-lg font-bold mb-4">Edit task</h3>
-        <input
-          v-model="editTitle"
-          class="border rounded px-3 py-2 w-full mb-2"
-        />
-        <select
-          v-model="editCategoryId"
-          class="border rounded px-3 py-2 w-full mb-2"
-        >
-          <option value="">No category</option>
-          <option v-for="c in categories" :key="c.id" :value="c.id">
-            {{ c.title }}
-          </option>
-        </select>
-        <input
-          type="date"
-          v-model="editDate"
-          class="border rounded px-3 py-2 w-full mb-4"
-        />
-        <div class="flex justify-end gap-2">
-          <button @click="closeEdit" class="px-4 py-2 rounded border">
-            Cancel
-          </button>
-          <button @click="saveEdit" class="bg-primary text-white px-4 py-2 rounded">
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -286,40 +252,14 @@ const list = computed(() =>
 
 const title = ref('')
 
-const editIndex = ref<number | null>(null)
-const editTitle = ref('')
-const editCategoryId = ref('')
-const editDate = ref('')
+const taskToEdit = useState<Todo | null>('taskToEdit', () => null)
+const showTaskModal = useState<boolean>('showTaskModal', () => false)
 
 const openEdit = (i: number) => {
   const t = list.value[i]
   if (!t) return
-  editIndex.value = i
-  editTitle.value = t.title
-  editCategoryId.value = t.categoryId || ''
-  editDate.value = t.date
-}
-
-const closeEdit = () => {
-  editIndex.value = null
-  editTitle.value = ''
-  editCategoryId.value = ''
-  editDate.value = ''
-}
-
-const saveEdit = async () => {
-  if (editIndex.value === null || !user.value) return
-  const t = list.value[editIndex.value]
-  const title = editTitle.value.trim()
-  const categoryId = editCategoryId.value || null
-  const date = editDate.value
-  closeEdit()
-  if (t?.id)
-    await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
-      title,
-      categoryId,
-      date,
-    })
+  taskToEdit.value = { ...t }
+  showTaskModal.value = true
 }
 
 const add = async () => {
