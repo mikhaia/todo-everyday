@@ -189,6 +189,7 @@ const saveCategory = async () => {
   if (!user.value) return
   const title = newCategory.title.trim()
   if (!title) return
+  showModal.value = false
   if (editingId.value) {
     let imagePath = newCategory.image || ''
     if (imageFile.value) {
@@ -226,6 +227,5 @@ const saveCategory = async () => {
   imageFile.value = null
   editingId.value = null
   categoryToEdit.value = null
-  showModal.value = false
 }
 </script>
