@@ -32,7 +32,7 @@
         </div>
         <div>
           <span class="block text-sm mb-1">Background</span>
-          <div class="grid grid-cols-6 gap-2">
+          <div class="grid grid-cols-7 gap-2">
             <button
               v-for="color in colorOptions"
               :key="color"
@@ -118,7 +118,8 @@ const colorOptions = [
   '#3F51B5',
   '#607D8B',
   '#009688',
-  '#A52A2A'
+  '#A52A2A',
+  '#333333'
 ]
 
 const newCategory = reactive({
