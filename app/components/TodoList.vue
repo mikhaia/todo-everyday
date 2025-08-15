@@ -17,6 +17,16 @@
       {{ activeCategory?.title || 'ToDo' }} :: {{ day }}
       <div v-if="user" class="ml-auto flex items-center gap-2">
         <button
+          @click="exportList"
+          class="material-symbols-outlined"
+          aria-label="Export list"
+        >content_copy</button>
+        <button
+          @click="importList"
+          class="material-symbols-outlined"
+          aria-label="Import list"
+        >content_paste</button>
+        <button
           v-if="!shareId"
           @click="shareList"
           class="material-symbols-outlined"
@@ -300,6 +310,42 @@ const onReorder = async (newList: Todo[]) => {
     })
   })
   await batch.commit()
+}
+
+const exportList = async () => {
+  const text = list.value.map(t => `- [${t.done ? 'x' : ' '}] ${t.title}`).join('\n')
+  try {
+    await navigator.clipboard.writeText(text)
+    alert('List copied to clipboard')
+  } catch (e) {
+    window.prompt('Copy this list', text)
+  }
+}
+
+const importList = async () => {
+  if (!user.value) return
+  try {
+    const text = await navigator.clipboard.readText()
+    const lines = text.split(/\r?\n/)
+    for (const line of lines) {
+      const m = line.match(/^-\s*\[( |x)\]\s*(.*)$/i)
+      if (!m) continue
+      const done = m[1].toLowerCase() === 'x'
+      const title = m[2].trim()
+      if (!title) continue
+      await addDoc(collection(db, 'users', user.value.uid, 'todos'), {
+        title,
+        order: 0,
+        date: day.value,
+        done,
+        categoryId: categoryId.value || null,
+        createdAt: serverTimestamp(),
+      })
+    }
+    alert('List imported from clipboard')
+  } catch (e) {
+    alert('Failed to read clipboard')
+  }
 }
 
 const shareList = async () => {
