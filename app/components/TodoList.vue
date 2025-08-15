@@ -328,9 +328,9 @@ const importList = async () => {
     const text = await navigator.clipboard.readText()
     const lines = text.split(/\r?\n/)
     for (const line of lines) {
-      const m = line.match(/^-\s*\[( |x)\]\s*(.*)$/i)
+      const m = line.match(/^-\s*(?:\[( |x)\]\s*)?(.*)$/i)
       if (!m) continue
-      const done = m[1].toLowerCase() === 'x'
+      const done = m[1] ? m[1].toLowerCase() === 'x' : false
       const title = m[2].trim()
       if (!title) continue
       await addDoc(collection(db, 'users', user.value.uid, 'todos'), {
