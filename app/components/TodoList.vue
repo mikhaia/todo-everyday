@@ -20,22 +20,26 @@
           @click="exportList"
           class="material-symbols-outlined"
           aria-label="Export list"
-        >content_copy</button>
+          title="Export tasks to clipboard"
+        >arrow_upload_progress</button>
         <button
           @click="importList"
           class="material-symbols-outlined"
           aria-label="Import list"
-        >content_paste</button>
+          title="Import tasks from clipboard"
+        >downloading</button>
         <button
           v-if="!shareId"
           @click="shareList"
           class="material-symbols-outlined"
           aria-label="Share list"
+          title="Share list"
         >share</button>
         <button v-else
           @click="unshareList"
           class="material-symbols-outlined"
           aria-label="Make list private"
+          label="Make list private"
         >link_off</button>
       </div>
     </h2>
