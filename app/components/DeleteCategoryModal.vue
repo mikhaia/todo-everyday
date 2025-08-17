@@ -50,6 +50,7 @@ const cancelDelete = () => {
 const deleteCategory = async () => {
   if (!user.value || !categoryToDelete.value?.id) return
   const id = categoryToDelete.value.id
+  showModal.value = false
   await deleteDoc(doc(db, 'users', user.value.uid, 'categories', id))
   const q = query(
     collection(db, 'users', user.value.uid, 'todos'),
