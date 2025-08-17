@@ -58,7 +58,7 @@
         </div>
         <AuthBlock />
       </aside>
-      <main class="flex-1 p-4 md:p-6">
+      <main class="flex-1 p-4 md:p-6" @click="closeSidebarOnMobile">
         <NuxtPage />
       </main>
     </div>
@@ -110,6 +110,12 @@ const sidebarOpen = ref(false)
 const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
 const isShareRoute = computed(() => route.path.startsWith('/share'))
+
+const closeSidebarOnMobile = () => {
+  if (sidebarOpen.value && window.innerWidth < 768) {
+    sidebarOpen.value = false
+  }
+}
 
 watch(() => activeCategory.value?.image, async (path) => {
   if (!path) { imageUrl.value = ''; return }
