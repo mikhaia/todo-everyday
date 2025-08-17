@@ -62,6 +62,7 @@
         <NuxtPage />
       </main>
     </div>
+      <DeleteCategoryModal />
       <CategoryModal />
       <TaskModal />
     </div>
@@ -74,10 +75,11 @@ import { getStorage, ref as sref, getDownloadURL } from "firebase/storage"
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
 import { format } from 'date-fns'
+import DeleteCategoryModal from './components/DeleteCategoryModal.vue'
 import CategoryList from './components/CategoryList.vue'
-  import CategoryModal from './components/CategoryModal.vue'
-  import TaskModal from './components/TaskModal.vue'
-  import { textColor } from './utils/color'
+import CategoryModal from './components/CategoryModal.vue'
+import TaskModal from './components/TaskModal.vue'
+import { textColor } from './utils/color'
 
 interface Todo {
   date: string
