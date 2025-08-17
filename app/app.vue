@@ -64,6 +64,7 @@
     </div>
       <CategoryModal />
       <TaskModal />
+      <DeleteCategoryModal />
     </div>
   </template>
 
@@ -77,6 +78,7 @@ import { format } from 'date-fns'
 import CategoryList from './components/CategoryList.vue'
   import CategoryModal from './components/CategoryModal.vue'
   import TaskModal from './components/TaskModal.vue'
+  import DeleteCategoryModal from './components/DeleteCategoryModal.vue'
   import { textColor } from './utils/color'
 
 interface Todo {
