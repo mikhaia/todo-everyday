@@ -28,34 +28,16 @@
     >
       + Add category
     </button>
-    <div
-      v-if="showDeleteModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[3000]"
-    >
-      <div class="bg-white p-4 rounded shadow w-80">
-        <h4 class="text-lg font-semibold mb-2">Delete category?</h4>
-        <p class="mb-4">This will also delete all tasks in this category.</p>
-        <div class="flex justify-end gap-2">
-          <button @click="cancelDelete" class="px-3 py-1 bg-gray-200 rounded">Cancel</button>
-          <button @click="deleteCategory" class="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { watch, onUnmounted, ref } from 'vue'
+import { watch, onUnmounted } from 'vue'
 import { useFirebaseApp } from 'vuefire'
 import {
   getFirestore,
   collection,
-  onSnapshot,
-  doc,
-  deleteDoc,
-  getDocs,
-  query,
-  where
+  onSnapshot
 } from 'firebase/firestore'
 import { textColor } from '../utils/color'
 
@@ -100,8 +82,8 @@ onUnmounted(() => {
   if (off) off()
 })
 
-const showDeleteModal = ref(false)
-const categoryToDelete = ref<Category | null>(null)
+const categoryToDelete = useState<Category | null>('categoryToDelete', () => null)
+const showDeleteCategoryModal = useState<boolean>('showDeleteCategoryModal', () => false)
 
 const openModal = (c?: Category) => {
   if (!user.value) return
@@ -111,26 +93,7 @@ const openModal = (c?: Category) => {
 
 const confirmDelete = (c: Category) => {
   categoryToDelete.value = c
-  showDeleteModal.value = true
-}
-
-const cancelDelete = () => {
-  showDeleteModal.value = false
-  categoryToDelete.value = null
-}
-
-const deleteCategory = async () => {
-  if (!user.value || !categoryToDelete.value?.id) return
-  const id = categoryToDelete.value.id
-  await deleteDoc(doc(db, 'users', user.value.uid, 'categories', id))
-  const q = query(
-    collection(db, 'users', user.value.uid, 'todos'),
-    where('categoryId', '==', id)
-  )
-  const snap = await getDocs(q)
-  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)))
-  if (activeCategoryId.value === id) activeCategoryId.value = ''
-  cancelDelete()
+  showDeleteCategoryModal.value = true
 }
 
 const toggleFilter = (id?: string) => {
