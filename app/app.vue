@@ -1,77 +1,82 @@
 <template>
-  <div
-    class="fixed min-h-screen inset-0 bg-cover bg-center opacity-90"
-    :style="{ backgroundImage: imageUrl ? `url('${imageUrl}')` : undefined }"
-  ></div>
+  <div v-if="isAuthRoute">
+    <NuxtPage />
+  </div>
+  <template v-else>
     <div
-    class="fixed min-h-screen inset-0 bg-cover bg-center z-[-1]"
-    :style="{ backgroundColor: activeCategory?.background || undefined }"
-  ></div>
-  <div class="min-h-screen text-gray-900 font-sans bg-cover bg-center relative z-1"
-    :class="{ 'bg-gray-300': !activeCategory?.background }"
-    :style="{
-      color: activeCategory?.background ? textColor(activeCategory.background) : ''
-    }">
-    <button
-      v-if="!isShareRoute"
-      class="md:hidden absolute top-4 left-4 z-20 p-2 bg-white rounded shadow"
-      @click="sidebarOpen = !sidebarOpen"
-    >
-      <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
-    </button>
-    <div class="flex flex-col md:flex-row min-h-screen">
-      <div
+      class="fixed min-h-screen inset-0 bg-cover bg-center opacity-90"
+      :style="{ backgroundImage: imageUrl ? `url('${imageUrl}')` : undefined }"
+    ></div>
+    <div
+      class="fixed min-h-screen inset-0 bg-cover bg-center z-[-1]"
+      :style="{ backgroundColor: activeCategory?.background || undefined }"
+    ></div>
+    <div class="min-h-screen text-gray-900 font-sans bg-cover bg-center relative z-1"
+      :class="{ 'bg-gray-300': !activeCategory?.background }"
+      :style="{
+        color: activeCategory?.background ? textColor(activeCategory.background) : ''
+      }">
+      <button
         v-if="!isShareRoute"
-        class="md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
-            border border-white/40 shadow-lg p-5 fixed h-full z-10 transition-transform duration-300"
-        :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', 'md:translate-x-0']"></div>
-      <aside
-        v-if="!isShareRoute"
-        :class="[
-          'fixed md:relative top-0 left-0 h-full md:h-auto w-72 flex flex-col justify-between p-5 transition-transform duration-300 z-10',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-          'md:translate-x-0'
-        ]"
+        class="md:hidden absolute top-4 left-4 z-20 p-2 bg-white rounded shadow"
+        @click="sidebarOpen = !sidebarOpen"
       >
-        <div>
-          <h1 class="flex items-center gap-2 text-2xl font-bold justify-center">
-            <span class="material-symbols-outlined">checklist</span> Todo
-          </h1>
-          <div class="space-y-2 h-[300px]">
-            <DatePicker
-              class="inline-picker"
-              v-model="day"
-              type="date"
-              format="YYYY-MM-DD"
-              value-type="format"
-              :lang="lang"
-              :open="true"
-              :editable="false"
-              :clearable="false"
-              :append-to-body="false"
-              title-format="YYYY-MM-DD"
-              :get-classes="getDayClass"
-              @change="onDateSelect"
-            />
+        <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
+      </button>
+      <div class="flex flex-col md:flex-row min-h-screen">
+        <div
+          v-if="!isShareRoute"
+          class="md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
+              border border-white/40 shadow-lg p-5 fixed h-full z-10 transition-transform duration-300"
+          :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', 'md:translate-x-0']"></div>
+        <aside
+          v-if="!isShareRoute"
+          :class="[
+            'fixed md:relative top-0 left-0 h-full md:h-auto w-72 flex flex-col justify-between p-5 transition-transform duration-300 z-10',
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+            'md:translate-x-0'
+          ]"
+        >
+          <div>
+            <h1 class="flex items-center gap-2 text-2xl font-bold justify-center">
+              <span class="material-symbols-outlined">checklist</span> Todo
+            </h1>
+            <div class="space-y-2 h-[300px]">
+              <DatePicker
+                class="inline-picker"
+                v-model="day"
+                type="date"
+                format="YYYY-MM-DD"
+                value-type="format"
+                :lang="lang"
+                :open="true"
+                :editable="false"
+                :clearable="false"
+                :append-to-body="false"
+                title-format="YYYY-MM-DD"
+                :get-classes="getDayClass"
+                @change="onDateSelect"
+              />
+            </div>
+            <CategoryList />
           </div>
-          <CategoryList />
-        </div>
-        <AuthBlock />
-      </aside>
-      <main class="flex-1 p-4 md:p-6" @click="closeSidebarOnMobile">
-        <NuxtPage />
-      </main>
-    </div>
-      <DeleteCategoryModal />
-      <CategoryModal />
-      <TaskModal />
+          <AuthBlock />
+        </aside>
+        <main class="flex-1 p-4 md:p-6" @click="closeSidebarOnMobile">
+          <NuxtPage />
+        </main>
+      </div>
+        <DeleteCategoryModal />
+        <CategoryModal />
+        <TaskModal />
     </div>
   </template>
+</template>
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { watch, computed } from 'vue'
-import { getStorage, ref as sref, getDownloadURL } from "firebase/storage"
+import { watch, computed, ref } from 'vue'
+import { getStorage, ref as sref, getDownloadURL } from 'firebase/storage'
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
 import { format } from 'date-fns'
@@ -112,6 +117,7 @@ const sidebarOpen = ref(false)
 const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
 const isShareRoute = computed(() => route.path.startsWith('/share'))
+const isAuthRoute = computed(() => route.path.startsWith('/login'))
 
 const closeSidebarOnMobile = () => {
   if (sidebarOpen.value && window.innerWidth < 768) {
