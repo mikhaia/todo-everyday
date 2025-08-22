@@ -9,12 +9,12 @@
       }">
       <div class="ml-14 md:ml-0 text-xl md:text-2xl">
         <span
-          class="material-symbols-outlined text-4xl ml-auto md:ml-0"
+          class="material-symbols-outlined text-4xl ml-auto md:ml-0 relative top-2"
           v-if="activeCategory?.icon"
           >
           {{ activeCategory.icon }}
         </span>
-        <span v-else class="material-symbols-outlined ml-auto md:ml-0">checklist</span>
+        <span v-else class="material-symbols-outlined ml-auto md:ml-0 relative top-1">checklist</span>
         {{ activeCategory?.title || 'ToDo' }} <div class="md:inline ml-3 md:ml-0">:: {{ day }}</div>
       </div>
       <div v-if="user" class="ml-auto flex items-center gap-2">
