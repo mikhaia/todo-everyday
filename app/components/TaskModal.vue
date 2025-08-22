@@ -3,7 +3,7 @@
     v-if="showModal"
     class="fixed inset-0 bg-black/50 flex items-center justify-center z-[3000]"
   >
-    <div class="bg-white p-6 rounded shadow max-w-sm w-full">
+    <div class="bg-white p-6 rounded shadow max-w-sm w-full text-black">
       <h3 class="text-lg font-bold mb-4">Edit task</h3>
       <input
         v-model="editTitle"
