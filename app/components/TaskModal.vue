@@ -44,7 +44,7 @@ interface Todo {
   id?: string
   title: string
   order: number
-  date: string
+  date: string | null
   done: boolean
   categoryId: string | null
 }
@@ -73,7 +73,7 @@ watch(showModal, (val) => {
   if (val && taskToEdit.value) {
     editTitle.value = taskToEdit.value.title
     editCategoryId.value = taskToEdit.value.categoryId || ''
-    editDate.value = taskToEdit.value.date
+    editDate.value = taskToEdit.value.date || ''
   } else {
     editTitle.value = ''
     editCategoryId.value = ''
@@ -90,7 +90,7 @@ const saveTask = async () => {
   if (!user.value || !taskToEdit.value?.id) return
   const title = editTitle.value.trim()
   const categoryId = editCategoryId.value || null
-  const date = editDate.value
+  const date = editDate.value || null
   showModal.value = false
   await updateDoc(doc(db, 'users', user.value.uid, 'todos', taskToEdit.value.id), {
     title,

@@ -16,13 +16,6 @@
       :style="{
         color: activeCategory?.background ? textColor(activeCategory.background) : ''
       }">
-      <button
-        v-if="!isShareRoute"
-        class="md:hidden absolute top-4 left-4 z-20 p-2 bg-white rounded shadow"
-        @click="sidebarOpen = !sidebarOpen"
-      >
-        <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
-      </button>
       <div class="flex flex-col md:flex-row min-h-screen">
         <div
           v-if="!isShareRoute"
@@ -38,6 +31,13 @@
           ]"
         >
           <div>
+            <button
+              v-if="!isShareRoute"
+              class="md:hidden absolute top-4 left-4 z-20 p-2 pt-3 bg-white rounded shadow text-black"
+              @click="sidebarOpen = !sidebarOpen"
+            >
+              <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
+            </button>
             <h1 class="flex items-center gap-2 text-2xl font-bold justify-center">
               <span class="material-symbols-outlined">checklist</span> Todo
             </h1>
@@ -63,12 +63,20 @@
           <AuthBlock />
         </aside>
         <main class="flex-1 p-4 md:p-6" @click="closeSidebarOnMobile">
+          <button
+            v-if="!isShareRoute"
+            class="md:hidden absolute top-4 left-4 p-2 pt-3 bg-white rounded shadow text-black"
+            @click.stop="sidebarOpen = !sidebarOpen"
+          >
+            <span class="material-symbols-outlined">menu</span>
+          </button>
           <NuxtPage />
         </main>
       </div>
         <DeleteCategoryModal />
         <CategoryModal />
         <TaskModal />
+        <DeleteTaskModal />
     </div>
   </template>
 </template>
@@ -84,10 +92,11 @@ import DeleteCategoryModal from './components/DeleteCategoryModal.vue'
 import CategoryList from './components/CategoryList.vue'
 import CategoryModal from './components/CategoryModal.vue'
 import TaskModal from './components/TaskModal.vue'
+import DeleteTaskModal from './components/DeleteTaskModal.vue'
 import { textColor } from './utils/color'
 
 interface Todo {
-  date: string
+  date: string | null
   done: boolean
 }
 
@@ -121,6 +130,7 @@ const isAuthRoute = computed(() => route.path.startsWith('/login'))
 
 const closeSidebarOnMobile = () => {
   if (sidebarOpen.value && window.innerWidth < 768) {
+    console.log('here');
     sidebarOpen.value = false
   }
 }
@@ -147,6 +157,7 @@ watch(() => activeCategory.value?.image, async (path) => {
 const dayMap = computed(() => {
   const map: Record<string, { total: number; done: number }> = {}
   for (const t of tasks.value) {
+    if (!t.date) continue
     const m = map[t.date] || (map[t.date] = { total: 0, done: 0 })
     m.total++
     if (t.done) m.done++
