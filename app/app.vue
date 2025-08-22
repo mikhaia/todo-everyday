@@ -69,6 +69,7 @@
         <DeleteCategoryModal />
         <CategoryModal />
         <TaskModal />
+        <DeleteTaskModal />
     </div>
   </template>
 </template>
@@ -84,6 +85,7 @@ import DeleteCategoryModal from './components/DeleteCategoryModal.vue'
 import CategoryList from './components/CategoryList.vue'
 import CategoryModal from './components/CategoryModal.vue'
 import TaskModal from './components/TaskModal.vue'
+import DeleteTaskModal from './components/DeleteTaskModal.vue'
 import { textColor } from './utils/color'
 
 interface Todo {
