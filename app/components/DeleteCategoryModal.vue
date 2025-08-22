@@ -3,7 +3,7 @@
     v-if="showModal"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[3000]"
   >
-    <div class="bg-white p-4 rounded shadow w-80">
+    <div class="bg-white p-4 rounded shadow w-80 text-black">
       <h4 class="text-lg font-semibold mb-2">Delete category?</h4>
       <p class="mb-4">This will also delete all tasks in this category.</p>
       <div class="flex justify-end gap-2">
