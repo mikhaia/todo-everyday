@@ -16,13 +16,6 @@
       :style="{
         color: activeCategory?.background ? textColor(activeCategory.background) : ''
       }">
-      <button
-        v-if="!isShareRoute"
-        class="md:hidden absolute top-4 left-4 z-20 p-2 bg-white rounded shadow"
-        @click="sidebarOpen = !sidebarOpen"
-      >
-        <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
-      </button>
       <div class="flex flex-col md:flex-row min-h-screen">
         <div
           v-if="!isShareRoute"
@@ -38,6 +31,13 @@
           ]"
         >
           <div>
+            <button
+              v-if="!isShareRoute"
+              class="md:hidden absolute top-4 left-4 z-20 p-2 bg-white rounded shadow"
+              @click="sidebarOpen = !sidebarOpen"
+            >
+              <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
+            </button>
             <h1 class="flex items-center gap-2 text-2xl font-bold justify-center">
               <span class="material-symbols-outlined">checklist</span> Todo
             </h1>
@@ -63,6 +63,13 @@
           <AuthBlock />
         </aside>
         <main class="flex-1 p-4 md:p-6" @click="closeSidebarOnMobile">
+          <button
+            v-if="!isShareRoute"
+            class="md:hidden absolute top-4 left-4 p-2 bg-white rounded shadow"
+            @click.stop="sidebarOpen = !sidebarOpen"
+          >
+            <span class="material-symbols-outlined">menu</span>
+          </button>
           <NuxtPage />
         </main>
       </div>
@@ -123,6 +130,7 @@ const isAuthRoute = computed(() => route.path.startsWith('/login'))
 
 const closeSidebarOnMobile = () => {
   if (sidebarOpen.value && window.innerWidth < 768) {
+    console.log('here');
     sidebarOpen.value = false
   }
 }
