@@ -33,7 +33,7 @@
           <div>
             <button
               v-if="!isShareRoute"
-              class="md:hidden absolute top-4 left-4 z-20 p-2 pt-3 bg-white rounded shadow"
+              class="md:hidden absolute top-4 left-4 z-20 p-2 pt-3 bg-white rounded shadow text-black"
               @click="sidebarOpen = !sidebarOpen"
             >
               <span class="material-symbols-outlined">{{ sidebarOpen ? 'close' : 'menu' }}</span>
@@ -65,7 +65,7 @@
         <main class="flex-1 p-4 md:p-6" @click="closeSidebarOnMobile">
           <button
             v-if="!isShareRoute"
-            class="md:hidden absolute top-4 left-4 p-2 pt-3 bg-white rounded shadow"
+            class="md:hidden absolute top-4 left-4 p-2 pt-3 bg-white rounded shadow text-black"
             @click.stop="sidebarOpen = !sidebarOpen"
           >
             <span class="material-symbols-outlined">menu</span>
