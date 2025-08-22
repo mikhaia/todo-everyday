@@ -12,13 +12,13 @@
         >early_on</span>
       </div>
       <div class="flex-1 p-6">
-        <h2 class="text-2xl font-bold mb-6 text-center">Sign in</h2>
-        <form class="space-y-4" @submit.prevent="loginWithEmail">
+        <h2 class="text-2xl font-bold mb-10 text-center">Sign in</h2>
+        <!-- <form class="space-y-4" @submit.prevent="loginWithEmail">
           <input v-model="email" type="email" placeholder="Email" class="w-full p-2 rounded bg-gray-700 placeholder-gray-400" />
           <input v-model="password" type="password" placeholder="Password" class="w-full p-2 rounded bg-gray-700 placeholder-gray-400" />
           <button type="submit" class="w-full py-2 bg-blue-500 rounded">Sign in</button>
-        </form>
-        <div class="mt-4 flex flex-col gap-4 text-black">
+        </form> -->
+        <div class="mt-4 flex flex-col gap-10 text-black">
           <button class="w-full py-2 bg-gray-50 rounded flex items-center justify-center gap-2" @click="loginGoogle">
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-7 h-7" />
             Sign in with Google
