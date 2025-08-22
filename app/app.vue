@@ -87,7 +87,7 @@ import TaskModal from './components/TaskModal.vue'
 import { textColor } from './utils/color'
 
 interface Todo {
-  date: string
+  date: string | null
   done: boolean
 }
 
@@ -147,6 +147,7 @@ watch(() => activeCategory.value?.image, async (path) => {
 const dayMap = computed(() => {
   const map: Record<string, { total: number; done: number }> = {}
   for (const t of tasks.value) {
+    if (!t.date) continue
     const m = map[t.date] || (map[t.date] = { total: 0, done: 0 })
     m.total++
     if (t.done) m.done++
