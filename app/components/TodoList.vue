@@ -53,12 +53,18 @@
     />
     <div class="space-y-2">
       <div class="flex flex-col md:flex-row gap-2">
-        <input
-          v-model="title"
-          @keyup.enter="add"
-          placeholder="New task…"
-          class="border rounded px-3 py-2 flex-1 w-full"
-        />
+        <div class="flex-1">
+          <input
+            v-model="title"
+            @keyup.enter="add"
+            placeholder="New task…"
+            class="border rounded px-3 py-2 w-full"
+          />
+          <label class="flex items-center gap-1 mt-1">
+            <input type="checkbox" v-model="noDate" class="accent-primary" />
+            <span>No date</span>
+          </label>
+        </div>
         <div class="flex flex-row gap-2 h-10">
           <select v-model="categoryId" class="border rounded px-2 w-full md:w-auto">
             <option value="">No category</option>
@@ -80,13 +86,13 @@
         ghost-class="is-ghost"
         @update:modelValue="onReorder"
       >
-        <template #item="{ element: t, index: i }">
+        <template #item="{ element: t }">
           <li>
             <div class="bg-white border rounded p-2 flex items-center gap-2">
               <span class="material-symbols-outlined drag-handle cursor-grab select-none">drag_indicator</span>
 
               <label class="flex items-center gap-2 flex-1">
-                <input class="w-5 h-5 accent-green-600" type="checkbox" :checked="t.done" @change="toggle(i)" />
+                <input class="w-5 h-5 accent-green-600" type="checkbox" :checked="t.done" @change="toggle(t)" />
                 <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
               </label>
 
@@ -101,10 +107,56 @@
                 {{ categoryMap[t.categoryId]?.title }}
               </span>
 
-              <button @click="openEdit(i)" aria-label="Edit task">
+              <button @click="openEdit(t)" aria-label="Edit task">
                 <span class="material-symbols-outlined">edit</span>
               </button>
-              <button class="text-red-500" @click="deleteTask(i)" aria-label="Remove task">
+              <button class="text-red-500" @click="deleteTask(t)" aria-label="Remove task">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </li>
+        </template>
+      </draggable>
+
+      <hr v-if="undatedList.length" />
+
+      <draggable
+        v-if="undatedList.length"
+        :modelValue="undatedList"
+        item-key="id"
+        tag="ul"
+        class="space-y-2 animate__animated animate__fadeIn"
+        handle=".drag-handle"
+        :animation="200"
+        chosen-class="is-chosen"
+        ghost-class="is-ghost"
+        @update:modelValue="onReorder"
+      >
+        <template #item="{ element: t }">
+          <li>
+            <div class="bg-white border rounded p-2 flex items-center gap-2">
+              <span class="material-symbols-outlined drag-handle cursor-grab select-none">drag_indicator</span>
+
+              <label class="flex items-center gap-2 flex-1">
+                <input class="w-5 h-5 accent-green-600" type="checkbox" :checked="t.done" @change="toggle(t)" />
+                <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
+              </label>
+
+              <span
+                v-if="t.categoryId && categoryMap[t.categoryId]"
+                class="text-xs px-2 py-1 rounded flex items-center gap-1"
+                :style="{ background: categoryMap[t.categoryId]?.background, color: textColor(categoryMap[t.categoryId]?.background || '') }"
+              >
+              <span v-if="categoryMap[t.categoryId]?.icon" class="material-symbols-outlined">
+                  {{ categoryMap[t.categoryId]?.icon }}
+                </span>
+                {{ categoryMap[t.categoryId]?.title }}
+              </span>
+
+              <button @click="openEdit(t)" aria-label="Edit task">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+              <button class="text-red-500" @click="deleteTask(t)" aria-label="Remove task">
                 <span class="material-symbols-outlined">delete</span>
               </button>
             </div>
@@ -142,7 +194,7 @@ interface Todo {
   id?: string
   title: string
   order: number
-  date: string
+  date: string | null
   done: boolean
   categoryId: string | null
   createdAt?: Timestamp | null
@@ -176,7 +228,11 @@ const db = getFirestore(app)
 const tasks = useState<Todo[]>('tasks', () => [])
 const loading = ref(true)
 const month = computed(() => day.value.slice(0, 7))
-let off: (() => void) | null = null
+let off: (() => void)[] = []
+let monthTasks: Todo[] = []
+let undatedTasks: Todo[] = []
+
+const noDate = ref(false)
 
 const shareId = ref<string | null>(null)
 const shareUrl = computed(() =>
@@ -217,7 +273,8 @@ const loadMonth = (m: string) => {
   if (!user.value) return
   const start = format(startOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
   const end = format(endOfMonth(new Date(m + '-01')), 'yyyy-MM-dd')
-  if (off) off()
+  off.forEach(fn => fn())
+  off = []
   loading.value = true
   const q = query(
     collection(db, 'users', user.value.uid, 'todos'),
@@ -227,8 +284,8 @@ const loadMonth = (m: string) => {
     orderBy('order'),
     orderBy('createdAt', 'desc'),
   )
-  off = onSnapshot(q, (snap) => {
-    tasks.value = snap.docs.map((d) => {
+  off.push(onSnapshot(q, (snap) => {
+    monthTasks = snap.docs.map((d) => {
       const data = d.data() as Omit<Todo, 'id'>
       return {
         id: d.id,
@@ -237,24 +294,43 @@ const loadMonth = (m: string) => {
         createdAt: data.createdAt ?? null
       }
     })
+    tasks.value = [...monthTasks, ...undatedTasks]
     loading.value = false
-  })
+  }))
+
+  const qUndated = query(
+    collection(db, 'users', user.value.uid, 'todos'),
+    where('date', '==', null),
+    orderBy('order'),
+    orderBy('createdAt', 'desc'),
+  )
+  off.push(onSnapshot(qUndated, (snap) => {
+    undatedTasks = snap.docs.map((d) => {
+      const data = d.data() as Omit<Todo, 'id'>
+      return {
+        id: d.id,
+        ...data,
+        categoryId: data.categoryId ?? null,
+        createdAt: data.createdAt ?? null
+      }
+    })
+    tasks.value = [...monthTasks, ...undatedTasks]
+    loading.value = false
+  }))
 }
 
 watch([user, month], ([u, m]) => {
   if (u) loadMonth(m)
   else {
     tasks.value = []
-    if (off) {
-      off()
-      off = null
-    }
+    off.forEach(fn => fn())
+    off = []
     loading.value = false
   }
 }, { immediate: true })
 
 onUnmounted(() => {
-  if (off) off()
+  off.forEach(fn => fn())
 })
 
 const list = computed(() =>
@@ -264,14 +340,19 @@ const list = computed(() =>
   )
 )
 
+const undatedList = computed(() =>
+  tasks.value.filter(
+    (t) =>
+      !t.date && (!activeCategoryId.value || t.categoryId === activeCategoryId.value)
+  )
+)
+
 const title = ref('')
 
 const taskToEdit = useState<Todo | null>('taskToEdit', () => null)
 const showTaskModal = useState<boolean>('showTaskModal', () => false)
 
-const openEdit = (i: number) => {
-  const t = list.value[i]
-  if (!t) return
+const openEdit = (t: Todo) => {
   taskToEdit.value = { ...t }
   showTaskModal.value = true
 }
@@ -283,23 +364,22 @@ const add = async () => {
   await addDoc(collection(db, 'users', user.value.uid, 'todos'), {
     title: s,
     order: 0,
-    date: day.value,
+    date: noDate.value ? null : day.value,
     done: false,
     categoryId: categoryId.value || null,
     createdAt: serverTimestamp()
   })
+  noDate.value = false
 }
 
-const deleteTask = async (i: number) => {
+const deleteTask = async (t: Todo) => {
   if (!user.value) return
-  const t = list.value[i]
   if (t?.id) await deleteDoc(doc(db, 'users', user.value.uid, 'todos', t.id))
 }
 
-const toggle = async (i: number) => {
-  if (!user.value) return
-  const t = list.value[i]
-  if (t?.id) await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
+const toggle = async (t: Todo) => {
+  if (!user.value || !t.id) return
+  await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
     done: !t.done
   })
 }
