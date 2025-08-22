@@ -110,7 +110,7 @@
               <button @click="openEdit(t)" aria-label="Edit task">
                 <span class="material-symbols-outlined">edit</span>
               </button>
-              <button class="text-red-500" @click="deleteTask(t)" aria-label="Remove task">
+              <button class="text-red-500" @click="confirmDelete(t)" aria-label="Remove task">
                 <span class="material-symbols-outlined">delete</span>
               </button>
             </div>
@@ -156,7 +156,7 @@
               <button @click="openEdit(t)" aria-label="Edit task">
                 <span class="material-symbols-outlined">edit</span>
               </button>
-              <button class="text-red-500" @click="deleteTask(t)" aria-label="Remove task">
+              <button class="text-red-500" @click="confirmDelete(t)" aria-label="Remove task">
                 <span class="material-symbols-outlined">delete</span>
               </button>
             </div>
@@ -357,6 +357,14 @@ const openEdit = (t: Todo) => {
   showTaskModal.value = true
 }
 
+const taskToDelete = useState<Todo | null>('taskToDelete', () => null)
+const showDeleteTaskModal = useState<boolean>('showDeleteTaskModal', () => false)
+
+const confirmDelete = (t: Todo) => {
+  taskToDelete.value = t
+  showDeleteTaskModal.value = true
+}
+
 const add = async () => {
   const s = title.value.trim()
   if (!s || !user.value) return
@@ -371,12 +379,6 @@ const add = async () => {
   })
   noDate.value = false
 }
-
-const deleteTask = async (t: Todo) => {
-  if (!user.value) return
-  if (t?.id) await deleteDoc(doc(db, 'users', user.value.uid, 'todos', t.id))
-}
-
 const toggle = async (t: Todo) => {
   if (!user.value || !t.id) return
   await updateDoc(doc(db, 'users', user.value.uid, 'todos', t.id), {
