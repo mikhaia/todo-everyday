@@ -20,12 +20,12 @@
         <div
           v-if="!isShareRoute"
           class="md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
-              border border-white/40 shadow-lg p-5 fixed h-full z-10 transition-transform duration-300"
+              border border-white/40 shadow-lg p-5 fixed h-full z-20 transition-transform duration-300"
           :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', 'md:translate-x-0']"></div>
         <aside
           v-if="!isShareRoute"
           :class="[
-            'fixed md:relative top-0 left-0 h-full md:h-auto w-72 flex flex-col justify-between p-5 transition-transform duration-300 z-10',
+            'fixed md:relative top-0 left-0 h-full md:h-auto w-72 flex flex-col justify-between p-5 transition-transform duration-300 z-20',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full',
             'md:translate-x-0'
           ]"
@@ -77,7 +77,7 @@
         </main>
         <div
           v-if="sidebarOpen && !isShareRoute"
-          class="fixed inset-0 left-72 md:hidden bg-black/30 backdrop-blur-sm z-10"
+          class="fixed inset-0 md:hidden bg-black/30 backdrop-blur-sm z-10"
           @click="sidebarOpen = false"
         ></div>
       </div>
