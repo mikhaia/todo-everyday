@@ -20,12 +20,12 @@
         <div
           v-if="!isShareRoute"
           class="md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
-              border border-white/40 shadow-lg p-5 fixed h-full z-10 transition-transform duration-300"
+              border border-white/40 shadow-lg p-5 fixed h-full z-20 transition-transform duration-300"
           :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', 'md:translate-x-0']"></div>
         <aside
           v-if="!isShareRoute"
           :class="[
-            'fixed md:relative top-0 left-0 h-full md:h-auto w-72 flex flex-col justify-between p-5 transition-transform duration-300 z-10',
+            'fixed md:relative top-0 left-0 h-full md:h-auto w-72 flex flex-col justify-between p-5 transition-transform duration-300 z-20',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full',
             'md:translate-x-0'
           ]"
@@ -62,7 +62,10 @@
           </div>
           <AuthBlock />
         </aside>
-        <main class="flex-1 p-4 md:p-6" @click="closeSidebarOnMobile">
+        <main
+          class="flex-1 p-4 md:p-6"
+          :class="{ 'pointer-events-none md:pointer-events-auto': sidebarOpen }"
+        >
           <button
             v-if="!isShareRoute"
             class="md:hidden absolute top-4 left-4 p-2 pt-3 bg-white rounded shadow text-black"
@@ -72,6 +75,11 @@
           </button>
           <NuxtPage />
         </main>
+        <div
+          v-if="sidebarOpen && !isShareRoute"
+          class="fixed inset-0 md:hidden bg-black/30 backdrop-blur-sm z-10"
+          @click="sidebarOpen = false"
+        ></div>
       </div>
         <DeleteCategoryModal />
         <CategoryModal />
@@ -127,13 +135,6 @@ const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
 const isShareRoute = computed(() => route.path.startsWith('/share'))
 const isAuthRoute = computed(() => route.path.startsWith('/login'))
-
-const closeSidebarOnMobile = () => {
-  if (sidebarOpen.value && window.innerWidth < 768) {
-    console.log('here');
-    sidebarOpen.value = false
-  }
-}
 
 watch(() => activeCategory.value?.image, async (path) => {
   if (!path) { imageUrl.value = ''; return }
