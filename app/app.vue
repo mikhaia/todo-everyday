@@ -62,7 +62,10 @@
           </div>
           <AuthBlock />
         </aside>
-        <main class="flex-1 p-4 md:p-6" @click="closeSidebarOnMobile">
+        <main
+          class="flex-1 p-4 md:p-6"
+          :class="{ 'pointer-events-none md:pointer-events-auto': sidebarOpen }"
+        >
           <button
             v-if="!isShareRoute"
             class="md:hidden absolute top-4 left-4 p-2 pt-3 bg-white rounded shadow text-black"
@@ -72,6 +75,11 @@
           </button>
           <NuxtPage />
         </main>
+        <div
+          v-if="sidebarOpen && !isShareRoute"
+          class="fixed inset-0 left-72 md:hidden bg-black/30 backdrop-blur-sm z-10"
+          @click="sidebarOpen = false"
+        ></div>
       </div>
         <DeleteCategoryModal />
         <CategoryModal />
@@ -127,13 +135,6 @@ const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
 const isShareRoute = computed(() => route.path.startsWith('/share'))
 const isAuthRoute = computed(() => route.path.startsWith('/login'))
-
-const closeSidebarOnMobile = () => {
-  if (sidebarOpen.value && window.innerWidth < 768) {
-    console.log('here');
-    sidebarOpen.value = false
-  }
-}
 
 watch(() => activeCategory.value?.image, async (path) => {
   if (!path) { imageUrl.value = ''; return }
