@@ -7,11 +7,11 @@
       <h3 class="text-lg font-bold mb-4">Edit task</h3>
       <input
         v-model="editTitle"
-        class="border rounded px-3 py-2 w-full mb-2"
+        class="border rounded px-3 py-2 w-full mb-2 shadow-sm"
       />
       <select
         v-model="editCategoryId"
-        class="border rounded px-3 py-2 w-full mb-2"
+        class="border rounded px-3 py-2 w-full mb-2 shadow-sm"
       >
         <option value="">No category</option>
         <option v-for="c in categories" :key="c.id" :value="c.id">
@@ -21,13 +21,13 @@
       <input
         type="date"
         v-model="editDate"
-        class="border rounded px-3 py-2 w-full mb-4"
+        class="border rounded px-3 py-2 w-full mb-4 shadow-sm"
       />
       <div class="flex justify-end gap-2">
-        <button @click="closeModal" class="px-3 py-1 bg-gray-200 rounded">
+        <button @click="closeModal" class="btn btn-secondary text-sm">
           Cancel
         </button>
-        <button @click="saveTask" class="px-3 py-1 bg-primary text-white rounded">
+        <button @click="saveTask" class="btn btn-primary text-sm">
           Save
         </button>
       </div>

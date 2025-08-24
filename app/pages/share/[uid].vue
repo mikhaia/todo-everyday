@@ -8,7 +8,7 @@
     </h2>
     <ul class="space-y-2">
       <li v-for="t in tasks" :key="t.id">
-        <div class="bg-white border rounded p-2 flex items-center gap-2">
+        <div class="border rounded p-2 flex items-center gap-2 shadow-md bg-gradient-to-b from-white to-gray-100">
           <input class="w-5 h-5 accent-green-600" type="checkbox" :checked="t.done" disabled />
           <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
         </div>
