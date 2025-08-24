@@ -7,8 +7,8 @@
       <h4 class="text-lg font-semibold mb-2">Delete category?</h4>
       <p class="mb-4">This will also delete all tasks in this category.</p>
       <div class="flex justify-end gap-2">
-        <button @click="cancelDelete" class="px-3 py-1 bg-gray-200 rounded">Cancel</button>
-        <button @click="deleteCategory" class="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
+        <button @click="cancelDelete" class="btn btn-secondary text-sm">Cancel</button>
+        <button @click="deleteCategory" class="btn btn-danger text-sm">Delete</button>
       </div>
     </div>
   </div>

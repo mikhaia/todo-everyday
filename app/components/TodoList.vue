@@ -60,7 +60,7 @@
             v-model="title"
             @keyup.enter="add"
             placeholder="New task…"
-            class="border rounded px-3 py-2 w-full"
+            class="border rounded px-3 py-2 w-full shadow-md"
           />
           <label class="flex items-center gap-1 mt-1">
             <input type="checkbox" v-model="noDate" class="accent-primary" />
@@ -68,13 +68,17 @@
           </label>
         </div>
         <div class="flex flex-row gap-2 h-10">
-          <select v-model="categoryId" class="border rounded px-2 w-full md:w-auto">
+          <select v-model="categoryId" class="border rounded px-2 w-full md:w-auto shadow-md">
             <option value="">No category</option>
             <option v-for="c in categories" :key="c.id" :value="c.id">
               {{ c.title }}
             </option>
           </select>
-          <button @click="add" class="bg-primary text-white px-4 rounded w-full md:w-auto shadow-[0_0_2px_white]">Add</button>
+            <button @click="add" class="bg-gray-800 text-white px-4 rounded w-full md:w-auto
+              shadow-[0_0_4px_rgba(255,255,255,0.6)]
+              bg-gradient-to-b from-gray-700 to-gray-800
+              hover:from-gray-600 hover:to-gray-700
+              transition">Add</button>
         </div>
       </div>
       <draggable
@@ -90,7 +94,7 @@
       >
         <template #item="{ element: t }">
           <li>
-            <div class="bg-white border rounded p-2 flex items-center gap-2">
+            <div class="border rounded p-2 flex items-center gap-2 shadow-md bg-gradient-to-b from-white to-gray-100">
               <span class="material-symbols-outlined drag-handle cursor-grab select-none">drag_indicator</span>
 
               <label class="flex items-center gap-2 flex-1">
@@ -100,7 +104,7 @@
 
               <span
                 v-if="t.categoryId && categoryMap[t.categoryId]"
-                class="text-xs px-2 py-1 rounded flex items-center gap-1"
+                class="text-xs px-2 py-1 rounded flex items-center gap-1 shadow-inner"
                 :style="{ background: categoryMap[t.categoryId]?.background, color: textColor(categoryMap[t.categoryId]?.background || '') }"
               >
               <span v-if="categoryMap[t.categoryId]?.icon" class="material-symbols-outlined">
@@ -136,7 +140,7 @@
       >
         <template #item="{ element: t }">
           <li>
-            <div class="bg-white border rounded p-2 flex items-center gap-2">
+            <div class="border rounded p-2 flex items-center gap-2 shadow-md bg-gradient-to-b from-white to-gray-100">
               <span class="material-symbols-outlined drag-handle cursor-grab select-none">drag_indicator</span>
 
               <label class="flex items-center gap-2 flex-1">
@@ -146,7 +150,7 @@
 
               <span
                 v-if="t.categoryId && categoryMap[t.categoryId]"
-                class="text-xs px-2 py-1 rounded flex items-center gap-1"
+                class="text-xs px-2 py-1 rounded flex items-center gap-1 shadow-inner"
                 :style="{ background: categoryMap[t.categoryId]?.background, color: textColor(categoryMap[t.categoryId]?.background || '') }"
               >
               <span v-if="categoryMap[t.categoryId]?.icon" class="material-symbols-outlined">
