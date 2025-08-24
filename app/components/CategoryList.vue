@@ -7,24 +7,24 @@
       <li v-for="c in categories" :key="c.id" class="flex items-center gap-1">
         <span class="material-symbols-outlined" :class="{'invisible': activeCategoryId !== c.id}">check</span>
         <span
-          class="px-2 py-1 rounded text-sm flex items-center gap-1 cursor-pointer flex-1"
+          class="px-2 py-1 rounded text-sm flex items-center gap-1 cursor-pointer flex-1 shadow-inner"
           :style="{ background: c.background, color: textColor(c.background) }"
           @click="toggleFilter(c.id)"
         >
           <span v-if="c.icon" class="material-symbols-outlined">{{ c.icon }}</span>
           {{ c.title }}
         </span>
-        <button @click="openModal(c)" class="bg-gray-50 rounded text-black" aria-label="Edit category" title="Edit category">
-          <span class="material-symbols-outlined text-sm p-1.5 border rounded">edit</span>
+        <button @click="openModal(c)" class="btn btn-secondary p-0" aria-label="Edit category" title="Edit category">
+          <span class="material-symbols-outlined text-sm p-1.5">edit</span>
         </button>
-        <button @click="confirmDelete(c)" class="bg-red-500 rounded text-white" aria-label="Delete category" title="Delete category">
-          <span class="material-symbols-outlined text-sm p-1.5 border rounded">delete</span>
+        <button @click="confirmDelete(c)" class="btn btn-danger p-0" aria-label="Delete category" title="Delete category">
+          <span class="material-symbols-outlined text-sm p-1.5">delete</span>
         </button>
       </li>
     </ul>
     <button
       @click="openModal()"
-      class="mt-2 bg-primary text-white p-2 rounded w-full shadow-[0_0_2px_white]"
+      class="btn btn-primary mt-2 p-2 rounded w-full"
     >
       + Add category
     </button>

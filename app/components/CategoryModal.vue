@@ -11,7 +11,7 @@
         <input
           v-model="newCategory.title"
           placeholder="Title"
-          class="border rounded w-full px-2 py-1"
+          class="shadow-sm border rounded w-full px-2 py-1"
         />
         <div>
           <span class="block text-sm mb-1">Icon</span>
@@ -47,20 +47,20 @@
           </div>
         </div>
         <div>
-          <span class="block text-sm mb-1">Image</span>
+          <span class="block mb-1">Image</span>
           <div v-if="newCategory.image" class="flex items-center gap-2">
-            <button type="button" @click="removeImage" class="px-2 py-1 bg-red-500 text-white rounded">
+            <button type="button" @click="removeImage" class="btn btn-danger text-sm ">
               Remove image
             </button>
           </div>
-          <input v-else type="file" accept="image/*" @change="onFileChange" />
+          <input v-else type="file" accept="image/*" @change="onFileChange" class="file-input" />
         </div>
       </div>
       <div class="mt-4 flex justify-end gap-2">
-        <button @click="closeModal" class="px-3 py-1 bg-gray-200 rounded">
+        <button @click="closeModal" class="btn btn-secondary text-sm">
           Cancel
         </button>
-        <button @click="saveCategory" class="px-3 py-1 bg-primary text-white rounded">
+        <button @click="saveCategory" class="btn btn-primary text-sm">
           Save
         </button>
       </div>
