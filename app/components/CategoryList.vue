@@ -1,7 +1,14 @@
 <template>
   <div>
     <h3 class="mt-2 flex items-center gap-1">
-      <span class="material-symbols-outlined">label</span>Categories
+      <span class="material-symbols-outlined">label</span>
+      Categories
+      <button
+        @click="categorySidebarOpen = false"
+        class="material-symbols-outlined bg-white rounded-full shadow text-black p-1 ml-auto"
+        aria-label="Close categories"
+        title="Close categories"
+      >close</button>
     </h3>
     <ul class="mt-2 space-y-1">
       <li v-for="c in categories" :key="c.id" class="flex items-center gap-1">
@@ -52,6 +59,7 @@ interface Category {
 const user = useState<{ uid: string } | null>('user', () => null)
 const categories = useState<Category[]>('categories', () => [])
 const activeCategoryId = useState<string>('activeCategoryId', () => '')
+const categorySidebarOpen = useState<boolean>('categorySidebarOpen', () => true)
 const categoryToEdit = useState<Category | null>('categoryToEdit', () => null)
 const showCategoryModal = useState<boolean>('showCategoryModal', () => false)
 

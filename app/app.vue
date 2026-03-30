@@ -58,17 +58,16 @@
                 @change="onDateSelect"
               />
             </div>
-            <CategoryList />
           </div>
           <AuthBlock />
         </aside>
         <main
           class="flex-1 p-4 md:p-6"
-          :class="{ 'pointer-events-none md:pointer-events-auto': sidebarOpen }"
+          :class="{ 'pointer-events-none md:pointer-events-auto': sidebarOpen || categorySidebarOpen }"
         >
           <button
             v-if="!isShareRoute"
-            class="md:hidden absolute top-4 left-4 p-2 pt-3 bg-white rounded shadow text-black"
+            class="absolute top-4 left-4 p-2 pt-3 bg-white rounded shadow text-black"
             @click.stop="sidebarOpen = !sidebarOpen"
           >
             <span class="material-symbols-outlined">menu</span>
@@ -76,9 +75,23 @@
           <NuxtPage />
         </main>
         <div
-          v-if="sidebarOpen && !isShareRoute"
+          v-if="!isShareRoute"
+          class="hidden md:block shrink-0 overflow-hidden transition-[width] duration-300"
+          :class="categorySidebarOpen ? 'w-72' : 'w-0'"
+        ></div>
+        <aside
+          v-if="!isShareRoute"
+          :class="[
+            'fixed top-0 right-0 h-full w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150 border border-white/40 shadow-lg p-5 overflow-y-auto z-20 transition-transform duration-300',
+            categorySidebarOpen ? 'translate-x-0' : 'translate-x-full'
+          ]"
+        >
+          <CategoryList />
+        </aside>
+        <div
+          v-if="(sidebarOpen || categorySidebarOpen) && !isShareRoute"
           class="fixed inset-0 md:hidden bg-black/30 backdrop-blur-sm z-10"
-          @click="sidebarOpen = false"
+          @click="sidebarOpen = false; categorySidebarOpen = false"
         ></div>
       </div>
         <DeleteCategoryModal />
@@ -131,6 +144,7 @@ const activeCategory = computed(() =>
 
 const storage = getStorage()
 const sidebarOpen = ref(false)
+const categorySidebarOpen = useState<boolean>('categorySidebarOpen', () => true)
 const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
 const isShareRoute = computed(() => route.path.startsWith('/share'))
