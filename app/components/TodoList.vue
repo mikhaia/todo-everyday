@@ -312,6 +312,7 @@ const outdatedList = computed(() =>
   tasks.value.filter(
     (t) =>
       !!t.date &&
+      !t.done &&
       t.date < day.value &&
       (!activeCategoryId.value || t.categoryId === activeCategoryId.value)
   )
