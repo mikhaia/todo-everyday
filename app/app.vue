@@ -63,7 +63,7 @@
         </aside>
         <main
           class="flex-1 p-4 md:p-6"
-          :class="{ 'pointer-events-none md:pointer-events-auto': sidebarOpen || categorySidebarOpen }"
+          :class="{ 'pointer-events-none md:pointer-events-auto': !isShareRoute && (sidebarOpen || categorySidebarOpen) }"
         >
           <button
             v-if="!isShareRoute"
