@@ -24,7 +24,7 @@
               <span class="material-symbols-outlined drag-handle cursor-grab select-none">drag_indicator</span>
 
               <label class="flex items-center gap-2 flex-1">
-                <input class="w-5 h-5 accent-green-600" type="checkbox" :checked="t.done" @change="emit('toggle-todo', t)" />
+                <input class="accent-green-600 w-5 h-5 shrink-0" type="checkbox" :checked="t.done" @change="emit('toggle-todo', t)" />
                 <span :class="{ 'line-through text-gray-400': t.done }">{{ t.title }}</span>
               </label>
 
