@@ -43,6 +43,14 @@
           aria-label="Make list private"
           label="Make list private"
         >link_off</button>
+        <button
+          @click="categorySidebarOpen = !categorySidebarOpen"
+          class="bg-white rounded shadow text-black p-1 material-symbols-outlined"
+          :aria-label="categorySidebarOpen ? 'Hide categories' : 'Show categories'"
+          :title="categorySidebarOpen ? 'Hide categories' : 'Show categories'"
+        >
+          inbox_text
+        </button>
       </div>
     </h2>
     <input
@@ -164,6 +172,7 @@ const day = useState('day', () => new Date().toISOString().slice(0, 10))
 const user = useState<{ uid: string } | null>('user', () => null)
 const categories = useState<Category[]>('categories', () => [])
 const activeCategoryId = useState<string>('activeCategoryId', () => '')
+const categorySidebarOpen = useState<boolean>('categorySidebarOpen', () => true)
 
 const activeCategory = computed(() =>
   categories.value.find((c) => c.id === activeCategoryId.value)
