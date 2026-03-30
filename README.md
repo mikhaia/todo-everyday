@@ -17,6 +17,11 @@ Install dependencies:
 npm install
 ```
 
+```bash
+cp .env.example to .env
+// add firebase api-keys to .env file
+```
+
 Start the development server:
 
 ```bash
@@ -36,4 +41,3 @@ Preview the production build locally:
 ```bash
 npm run preview
 ```
-

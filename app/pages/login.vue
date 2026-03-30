@@ -20,11 +20,11 @@
         </form> -->
         <div class="mt-4 flex flex-col gap-10 text-black">
           <button class="w-full py-2 bg-gray-50 rounded flex items-center justify-center gap-2" @click="loginGoogle">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-7 h-7" />
+            <img src="/img/google.svg" alt="Google" class="w-7 h-7" />
             Sign in with Google
           </button>
           <button class="w-full py-2 bg-gray-50 rounded flex items-center justify-center gap-2" @click="loginGithub">
-            <img src="https://www.svgrepo.com/download/512317/github-142.svg" alt="Github" class="w-7 h-7" />
+            <img src="/img/github.svg" alt="Github" class="w-7 h-7" />
             Sign in with Github
           </button>
         </div>
