@@ -63,8 +63,12 @@
             class="border rounded px-3 py-2 w-full shadow-md"
           />
           <label class="flex items-center gap-1 mt-1">
-            <input type="checkbox" v-model="noDate" class="accent-primary" />
-            <span>No date</span>
+            <input type="checkbox" v-model="noDate" class="accent-primary w-5 h-5 shrink-0" />
+            <span :style="{
+              color: activeCategory?.image
+                ? '#fff'
+                : (activeCategory?.background ? textColor(activeCategory.background) : undefined)
+            }">No date</span>
           </label>
         </div>
         <div class="flex flex-row gap-2 h-10">
