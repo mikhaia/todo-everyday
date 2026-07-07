@@ -2,7 +2,10 @@
   <div v-if="user" class="flex items-center gap-2 mt-4 bg-gray-50 rounded p-2 text-black">
     <img :src="user.photoURL || ''" class="w-6 h-6 rounded-full" />
     <span class="text-sm">{{ user.displayName || 'User' }}</span>
-    <button class="ml-auto flex items-center" @click="logout">
+    <button class="ml-auto flex items-center" @click="openSettings" aria-label="Settings" title="Settings">
+      <span class="material-symbols-outlined">settings</span>
+    </button>
+    <button class="flex items-center" @click="logout" aria-label="Logout" title="Logout">
       <span class="material-symbols-outlined">exit_to_app</span>
     </button>
   </div>
@@ -18,6 +21,11 @@ const app = useFirebaseApp()
 const auth = getAuth(app)
 
 const user = useState<{uid:string;displayName:string|null;photoURL:string|null}|null>('user', () => null)
+const showSettings = useState<boolean>('showSettingsModal', () => false)
+
+const openSettings = () => {
+  showSettings.value = true
+}
 
 const logout = async () => {
   await signOut(auth)

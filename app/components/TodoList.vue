@@ -119,6 +119,7 @@
         title="Outdated"
         :show-date="true"
         :show-divider="true"
+        :collapsible="true"
         @reorder="onReorder"
         @toggle-todo="toggle"
         @edit-todo="openEdit"

@@ -3,15 +3,29 @@
     <hr v-if="showDivider && items.length" />
 
     <div :class="{ 'pt-2': !!title }">
-      <h3 v-if="title" class="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2">
+      <h3
+        v-if="title"
+        class="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2"
+        :class="{ 'cursor-pointer select-none flex items-center gap-1': collapsible }"
+        @click="collapsible && (collapsed = !collapsed)"
+      >
+        <span v-if="collapsible" class="material-symbols-outlined text-base transition-transform" :class="{ '-rotate-90': collapsed }">
+          expand_more
+        </span>
         {{ title }}
       </h3>
 
+      <Transition
+        @enter="onEnter"
+        @after-enter="onAfterEnter"
+        @leave="onLeave"
+      >
       <draggable
+        v-show="!collapsible || !collapsed"
         :modelValue="items"
         item-key="id"
         tag="ul"
-        class="space-y-2 animate__animated animate__fadeIn"
+        class="space-y-2 animate__animated animate__fadeIn overflow-hidden"
         handle=".drag-handle"
         :animation="200"
         chosen-class="is-chosen"
@@ -53,11 +67,13 @@
           </li>
         </template>
       </draggable>
+      </Transition>
     </div>
   </template>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import draggable from 'vuedraggable'
 import { textColor } from '../utils/color'
 
@@ -84,12 +100,41 @@ const props = withDefaults(defineProps<{
   showDate?: boolean
   showDivider?: boolean
   alwaysShow?: boolean
+  collapsible?: boolean
 }>(), {
   title: '',
   showDate: false,
   showDivider: false,
   alwaysShow: false,
+  collapsible: false,
 })
+
+const collapsed = ref(true)
+
+const onEnter = (el: Element) => {
+  const e = el as HTMLElement
+  e.style.height = '0'
+  e.style.overflow = 'hidden'
+  requestAnimationFrame(() => {
+    e.style.transition = 'height 200ms ease'
+    e.style.height = e.scrollHeight + 'px'
+  })
+}
+const onAfterEnter = (el: Element) => {
+  const e = el as HTMLElement
+  e.style.height = ''
+  e.style.overflow = ''
+  e.style.transition = ''
+}
+const onLeave = (el: Element) => {
+  const e = el as HTMLElement
+  e.style.height = e.scrollHeight + 'px'
+  e.style.overflow = 'hidden'
+  requestAnimationFrame(() => {
+    e.style.transition = 'height 200ms ease'
+    e.style.height = '0'
+  })
+}
 
 const emit = defineEmits<{
   reorder: [items: Todo[]]

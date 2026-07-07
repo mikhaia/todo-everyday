@@ -98,6 +98,7 @@
         <CategoryModal />
         <TaskModal />
         <DeleteTaskModal />
+        <UserSettingsModal />
     </div>
   </template>
 </template>
@@ -114,7 +115,9 @@ import CategoryList from './components/CategoryList.vue'
 import CategoryModal from './components/CategoryModal.vue'
 import TaskModal from './components/TaskModal.vue'
 import DeleteTaskModal from './components/DeleteTaskModal.vue'
+import UserSettingsModal from './components/UserSettingsModal.vue'
 import { textColor } from './utils/color'
+import { isStaticRoute } from './utils/staticRoutes'
 
 interface Todo {
   date: string | null
@@ -148,7 +151,7 @@ const categorySidebarOpen = useState<boolean>('categorySidebarOpen', () => true)
 const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
 const isShareRoute = computed(() => route.path.startsWith('/share'))
-const isAuthRoute = computed(() => route.path.startsWith('/login'))
+const isAuthRoute = computed(() => route.path.startsWith('/login') || isStaticRoute(route.path))
 
 watch(() => activeCategory.value?.image, async (path) => {
   if (!path) { imageUrl.value = ''; return }
