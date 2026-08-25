@@ -1,6 +1,7 @@
 # Todo Everyday API
 
-Внешний API позволяет создавать, получать, выполнять и удалять задачи Todo Everyday.
+Внешний API позволяет создавать, получать, выполнять и удалять задачи Todo Everyday,
+а также получать список категорий пользователя.
 
 ## Подключение
 
@@ -119,6 +120,45 @@ curl -X POST https://todo-everyday.web.app/api/tasks/get \
   ]
 }
 ```
+
+## Получение категорий
+
+```text
+POST /categories/get
+```
+
+```bash
+curl -X POST https://todo-everyday.web.app/api/categories/get \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "token": "YOUR_API_TOKEN"
+  }'
+```
+
+Поля:
+
+| Поле | Обязательно | Описание |
+| --- | --- | --- |
+| `token` | Да | API-токен пользователя |
+
+Успешный ответ (`200 OK`):
+
+```json
+{
+  "categories": [
+    {
+      "id": "CATEGORY_ID",
+      "title": "Work",
+      "icon": "work",
+      "background": "#3b82f6",
+      "image": ""
+    }
+  ]
+}
+```
+
+Категории отсортированы по названию. Поле `id` совпадает с `categoryId`,
+который возвращается в задачах.
 
 ## Выполнение задач
 

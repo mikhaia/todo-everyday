@@ -18,12 +18,12 @@
       }">
       <div class="flex flex-col md:flex-row min-h-screen">
         <div
-          v-if="!isShareRoute"
+          v-if="!isShareRoute && !isMonthRoute"
           class="md:block w-72 bg-white/25 backdrop-blur-2xl backdrop-saturate-150
               border border-white/40 shadow-lg p-5 fixed h-full z-20 transition-transform duration-300"
           :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', 'md:translate-x-0']"></div>
         <aside
-          v-if="!isShareRoute"
+          v-if="!isShareRoute && !isMonthRoute"
           :class="[
             'fixed md:relative top-0 left-0 h-full md:h-auto w-72 flex flex-col justify-between p-5 transition-transform duration-300 z-20',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full',
@@ -40,6 +40,12 @@
             </button>
             <h1 class="flex items-center gap-2 text-2xl font-bold justify-center">
               <span class="material-symbols-outlined">checklist</span> Todo
+              <button
+                @click="goMonth"
+                class="material-symbols-outlined"
+                aria-label="Calendar view"
+                title="Calendar view"
+              >calendar_month</button>
             </h1>
             <div class="space-y-2 h-[300px]">
               <DatePicker
@@ -66,7 +72,7 @@
           :class="{ 'pointer-events-none md:pointer-events-auto': !isShareRoute && (sidebarOpen || categorySidebarOpen) }"
         >
           <button
-            v-if="!isShareRoute"
+            v-if="!isShareRoute && !isMonthRoute"
             class="absolute top-4 left-4 p-2 pt-3 bg-white rounded shadow text-black"
             @click.stop="sidebarOpen = !sidebarOpen"
           >
@@ -151,7 +157,12 @@ const categorySidebarOpen = useState<boolean>('categorySidebarOpen', () => true)
 const imageUrl = ref<string>('')
 const urlCache = new Map<string, string>()
 const isShareRoute = computed(() => route.path.startsWith('/share'))
+const isMonthRoute = computed(() => route.path.startsWith('/month'))
 const isAuthRoute = computed(() => route.path.startsWith('/login') || isStaticRoute(route.path))
+
+const goMonth = () => {
+  router.push(`/month/${day.value.slice(0, 7)}`)
+}
 
 watch(() => activeCategory.value?.image, async (path) => {
   if (!path) { imageUrl.value = ''; return }

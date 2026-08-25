@@ -370,8 +370,28 @@ const onReorder = async (newList: Todo[]) => {
   await batch.commit()
 }
 
+const formatTasks = (items: Todo[]) =>
+  items.map(t => `- [${t.done ? 'x' : ' '}] ${t.title}`).join('\n')
+
 const exportList = async () => {
-  const text = list.value.map(t => `- [${t.done ? 'x' : ' '}] ${t.title}`).join('\n')
+  let text = formatTasks(list.value)
+
+  if (!activeCategoryId.value) {
+    const groups = new Map<string | null, Todo[]>()
+    for (const task of list.value) {
+      const category = task.categoryId && categoryMap.value[task.categoryId]
+      const key = category ? task.categoryId : null
+      const group = groups.get(key) ?? []
+      group.push(task)
+      groups.set(key, group)
+    }
+
+    text = Array.from(groups, ([categoryId, items]) => {
+      const heading = categoryId ? categoryMap.value[categoryId].title : 'No category'
+      return `## ${heading}\n${formatTasks(items)}`
+    }).join('\n\n')
+  }
+
   try {
     await navigator.clipboard.writeText(text)
     alert('List copied to clipboard')

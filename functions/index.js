@@ -92,6 +92,28 @@ async function getTasks(req, res) {
   return res.json({ date: taskDate, tasks: result })
 }
 
+async function getCategories(req, res) {
+  const { token } = req.body || {}
+  const uid = await uidFromToken(token)
+  if (!uid) return res.status(401).json({ error: 'Invalid or missing token' })
+
+  const snap = await db.collection('users').doc(uid).collection('categories').get()
+  const categories = snap.docs
+    .map((d) => {
+      const x = d.data()
+      return {
+        id: d.id,
+        title: x.title || '',
+        icon: x.icon || '',
+        background: x.background || '',
+        image: x.image || ''
+      }
+    })
+    .sort((a, b) => a.title.localeCompare(b.title))
+
+  return res.json({ categories })
+}
+
 function taskIdsFromBody(body) {
   const raw = Array.isArray(body?.ids) ? body.ids : (body?.id != null ? [body.id] : [])
   const ids = [...new Set(raw.map((id) => String(id).trim()).filter(Boolean))]
@@ -161,6 +183,7 @@ exports.api = onRequest({ cors: true }, async (req, res) => {
     if (route === '/tasks/get') return await getTasks(req, res)
     if (route === '/tasks/delete') return await deleteTasks(req, res)
     if (route === '/tasks/complete') return await completeTasks(req, res)
+    if (route === '/categories/get') return await getCategories(req, res)
 
     return res.status(404).json({ error: 'Not found' })
   } catch (err) {
