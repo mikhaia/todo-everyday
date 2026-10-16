@@ -321,13 +321,13 @@ onUnmounted(() => {
 
 const dayTasks = computed(() => tasks.value.filter(t => t.date === day.value))
 
-const saveSchedule = async (id: string, slot: TimeSlot | null) => {
+// `date` is passed explicitly: the planner queues saves, so one may run after the selected day changed.
+const saveSchedule = async (id: string, slot: TimeSlot | null, date: string) => {
   const uid = user.value?.uid
-  const date = day.value
   if (!uid) throw new Error('Please sign in to plan tasks.')
   // Read every known task for this day, including other categories. Transactions
   // retry if another client changes one of these tasks while the slot is saved.
-  const ids = [...new Set([...dayTasks.value.map(t => t.id).filter((id): id is string => !!id), id])]
+  const ids = [...new Set([...tasks.value.filter(t => t.date === date).map(t => t.id).filter((id): id is string => !!id), id])]
   await runTransaction(db, async transaction => {
     const snapshots = await Promise.all(ids.map(taskId =>
       transaction.get(doc(db, 'users', uid, 'todos', taskId))

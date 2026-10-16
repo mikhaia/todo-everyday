@@ -33,14 +33,13 @@
         <li v-for="task in unplanned" :key="task.id" class="flex max-w-full items-center gap-1 rounded-md border bg-white px-2 py-1 shadow-sm">
           <button
             class="touch-none select-none cursor-grab rounded p-1 focus-visible:ring-2 focus-visible:ring-blue-500"
-            :disabled="saving"
             :aria-label="`Drag ${task.title} onto the planner`"
             @pointerdown="startGesture($event, task, 'new')"
             @click="scheduleFirst(task)"
           ><span class="material-symbols-outlined block text-lg">drag_indicator</span></button>
           <span class="h-2.5 w-2.5 shrink-0 rounded-full" :style="{ background: taskColor(task) }" />
           <span class="min-w-0 truncate text-sm" :class="{ 'line-through text-gray-400': task.done }">{{ task.title }}</span>
-          <button class="shrink-0 rounded p-1 text-blue-700 hover:bg-blue-50 disabled:opacity-50" :disabled="saving" :aria-label="`Plan ${task.title} in the first free hour`" title="Plan in the first free hour" @click="scheduleFirst(task)">
+          <button class="shrink-0 rounded p-1 text-blue-700 hover:bg-blue-50 disabled:opacity-50" :aria-label="`Plan ${task.title} in the first free hour`" title="Plan in the first free hour" @click="scheduleFirst(task)">
             <span class="material-symbols-outlined block text-lg">add</span>
           </button>
         </li>
@@ -57,28 +56,28 @@
         <form v-if="selectedTask && selectedSlot" class="p-6" @submit.prevent="saveSelected">
           <div class="mb-4 flex items-center justify-between gap-3">
             <h3 id="planning-editor-title" class="text-lg font-semibold">Edit task time</h3>
-            <button type="button" class="rounded p-1 hover:bg-gray-100 disabled:opacity-50" aria-label="Close time editor" :disabled="saving" @click="closeEditor">
+            <button type="button" class="rounded p-1 hover:bg-gray-100 disabled:opacity-50" aria-label="Close time editor" @click="closeEditor">
               <span class="material-symbols-outlined block">close</span>
             </button>
           </div>
           <p class="mb-4 break-words font-medium">{{ selectedTask.title }}</p>
           <div class="mb-4 grid grid-cols-2 gap-3">
             <label class="text-sm text-gray-600">Start
-              <select v-model.number="editStart" aria-label="Task start time" class="mt-1 block w-full rounded border bg-white px-2 py-2" :disabled="saving" autofocus>
+              <select v-model.number="editStart" aria-label="Task start time" class="mt-1 block w-full rounded border bg-white px-2 py-2" autofocus>
                 <option v-for="minute in allMinutes.slice(0, -1)" :key="minute" :value="minute">{{ formatMinute(minute) }}</option>
               </select>
             </label>
             <label class="text-sm text-gray-600">End
-              <select v-model.number="editEnd" aria-label="Task end time" class="mt-1 block w-full rounded border bg-white px-2 py-2" :disabled="saving">
+              <select v-model.number="editEnd" aria-label="Task end time" class="mt-1 block w-full rounded border bg-white px-2 py-2">
                 <option v-for="minute in allMinutes.slice(1)" :key="minute" :value="minute">{{ formatMinute(minute) }}</option>
               </select>
             </label>
           </div>
           <p v-if="error" role="alert" class="mb-4 rounded-lg bg-red-50 p-2 text-sm text-red-700">{{ error }}</p>
           <div class="flex flex-wrap justify-end gap-2">
-            <button type="button" class="mr-auto rounded border px-3 py-2 text-sm disabled:opacity-50" :disabled="saving" @click="unplanSelected">Unplan</button>
-            <button type="button" class="rounded border px-3 py-2 text-sm disabled:opacity-50" :disabled="saving" @click="closeEditor">Cancel</button>
-            <button type="submit" class="rounded bg-blue-600 px-3 py-2 text-sm text-white disabled:opacity-50" :disabled="saving">{{ saving ? 'Saving…' : 'Save time' }}</button>
+            <button type="button" class="mr-auto rounded border px-3 py-2 text-sm disabled:opacity-50" @click="unplanSelected">Unplan</button>
+            <button type="button" class="rounded border px-3 py-2 text-sm disabled:opacity-50" @click="closeEditor">Cancel</button>
+            <button type="submit" class="rounded bg-blue-600 px-3 py-2 text-sm text-white disabled:opacity-50">Save time</button>
           </div>
         </form>
       </dialog>
@@ -104,13 +103,12 @@
           </div>
           <div
             v-for="task in visiblePlanned" :key="task.id"
-            class="task-block absolute inset-x-1 touch-none select-none overflow-hidden rounded-md border border-black/10 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
-            :class="[{ 'ring-2 ring-blue-500': selectedId === task.id, 'opacity-60': task.done, 'cursor-grab': !saving, 'ring-2 ring-red-500': gesture?.task.id === task.id && !gestureValid }]"
+            class="task-block absolute inset-x-1 cursor-grab touch-none select-none overflow-hidden rounded-md border border-black/10 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+            :class="[{ 'ring-2 ring-blue-500': selectedId === task.id, 'opacity-60': task.done, 'ring-2 ring-red-500': gesture?.task.id === task.id && !gestureValid }]"
             :style="{ ...blockStyle(displaySlot(task)!), background: taskColor(task), color: textColor(taskColor(task)) }"
             tabindex="0"
             role="group"
             :aria-label="`${task.title}, ${formatMinute(displaySlot(task)!.start)} to ${formatMinute(displaySlot(task)!.end)}. Use the edit button to edit times; arrow keys move by 1 hour.`"
-            :aria-disabled="saving"
             @pointerdown="startGesture($event, task, 'move')"
             @click="selectTask(task)"
             @keydown.enter.self.prevent="openEditor(task)"
@@ -122,7 +120,7 @@
             <div class="flex h-full items-start gap-2 px-2 py-1.5 text-xs leading-4">
               <span class="min-w-0 flex-1 break-words font-semibold" :class="{ 'line-through': task.done }">{{ task.title }}</span>
               <span class="shrink-0 text-[10px] opacity-80">{{ formatMinute(displaySlot(task)!.start) }}–{{ formatMinute(displaySlot(task)!.end) }}</span>
-              <button type="button" class="shrink-0 rounded p-1 hover:bg-white/25 focus-visible:ring-2 focus-visible:ring-current disabled:opacity-50" :aria-label="`Edit time for ${task.title}`" title="Edit task time" :disabled="saving" @pointerdown.stop @click.stop="openEditor(task)" @keydown.stop>
+              <button type="button" class="shrink-0 rounded p-1 hover:bg-white/25 focus-visible:ring-2 focus-visible:ring-current disabled:opacity-50" :aria-label="`Edit time for ${task.title}`" title="Edit task time" @pointerdown.stop @click.stop="openEditor(task)" @keydown.stop>
                 <span class="material-symbols-outlined block text-base">edit</span>
               </button>
             </div>
@@ -139,15 +137,31 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { textColor } from '../utils/color'
-import { firstFreeSlot, formatMinute, PLANNING_STEP, slotAvailable, taskSlot, type PlanningTask, type TimeSlot } from '../utils/planning'
+import { firstFreeSlot, formatMinute, PLANNING_STEP, sameSlot, slotAvailable, taskSlot, type PlanningTask, type TimeSlot } from '../utils/planning'
 
 const props = defineProps<{
   day: string
   items: PlanningTask[]
   dayTasks: PlanningTask[]
   categoryMap: Record<string, { background: string }>
-  saveSchedule: (id: string, slot: TimeSlot | null) => Promise<void>
+  saveSchedule: (id: string, slot: TimeSlot | null, date: string) => Promise<void>
 }>()
+
+// Optimistic layer: the slot each task will have once its queued saves finish. The planner
+// renders and validates against these values, so the UI never waits for Firestore.
+type SaveJob = { id: string, title: string, date: string, slot: TimeSlot | null }
+const pending = ref<Record<string, TimeSlot | null>>({})
+const queue: SaveJob[] = []
+const confirmed = new Map<string, SaveJob>()
+let draining = false
+const withPending = (task: PlanningTask): PlanningTask => {
+  if (!task.id || !(task.id in pending.value)) return task
+  const slot = pending.value[task.id]
+  return { ...task, schedule: slot && task.date ? { date: task.date, start: slot.start, end: slot.end } : null }
+}
+const viewItems = computed(() => props.items.map(withPending))
+const viewDayTasks = computed(() => props.dayTasks.map(withPending))
+const saving = computed(() => Object.keys(pending.value).length > 0)
 
 const PIXELS_PER_MINUTE = 0.8
 const rangeStart = useState('planningRangeStart', () => 420)
@@ -158,13 +172,13 @@ const startOptions = computed(() => allMinutes.filter(minute => minute < rangeEn
 const endOptions = computed(() => allMinutes.filter(minute => minute > rangeStart.value))
 const gridLines = computed(() => Array.from({ length: Math.ceil(rangeLength.value / 60) }, (_, index) => rangeStart.value + index * 60))
 const overviewHours = computed(() => allMinutes.filter(minute => minute % 60 === 0 && minute > rangeStart.value && minute < rangeEnd.value))
-const planned = computed(() => props.items.filter(task => taskSlot(task)))
-const unplanned = computed(() => props.items.filter(task => !taskSlot(task)))
+const planned = computed(() => viewItems.value.filter(task => taskSlot(task)))
+const unplanned = computed(() => viewItems.value.filter(task => !taskSlot(task)))
 const plannedMinutes = computed(() => planned.value.reduce((sum, task) => sum + taskSlot(task)!.end - taskSlot(task)!.start, 0))
 const outsideCount = computed(() => planned.value.filter(task => taskSlot(task)!.start < rangeStart.value || taskSlot(task)!.end > rangeEnd.value).length)
 const intersectsRange = (slot: TimeSlot) => slot.start < rangeEnd.value && slot.end > rangeStart.value
 const visiblePlanned = computed(() => planned.value.filter(task => intersectsRange(displaySlot(task)!)))
-const hiddenPlanned = computed(() => props.dayTasks.filter(task => taskSlot(task) && !props.items.some(item => item.id === task.id) && intersectsRange(taskSlot(task)!)))
+const hiddenPlanned = computed(() => viewDayTasks.value.filter(task => taskSlot(task) && !props.items.some(item => item.id === task.id) && intersectsRange(taskSlot(task)!)))
 const taskColor = (task: PlanningTask) => (task.categoryId && props.categoryMap[task.categoryId]?.background) || '#64748b'
 const displaySlot = (task: PlanningTask) => gesture.value?.task.id === task.id ? gesture.value.slot : taskSlot(task)
 const blockStyle = (slot: TimeSlot) => ({
@@ -182,26 +196,26 @@ const overviewStyle = (task: PlanningTask) => {
 
 const error = ref('')
 const status = ref('')
-const saving = ref(false)
 const selectedId = ref<string>()
 const editorDialog = ref<HTMLDialogElement>()
 const editorOpen = ref(false)
-const selectedTask = computed(() => props.items.find(task => task.id === selectedId.value))
+const selectedTask = computed(() => viewItems.value.find(task => task.id === selectedId.value))
 const selectedSlot = computed(() => selectedTask.value && taskSlot(selectedTask.value))
 const editStart = ref(420)
 const editEnd = ref(480)
-watch(selectedSlot, slot => {
-  if (slot) { editStart.value = slot.start; editEnd.value = slot.end }
+// Watch the times, not the slot object: snapshots and background saves recreate task objects.
+watch([() => selectedSlot.value?.start, () => selectedSlot.value?.end], ([start, end]) => {
+  if (start !== undefined && end !== undefined) { editStart.value = start; editEnd.value = end }
   else editorDialog.value?.close()
 })
 function selectTask(task: PlanningTask) {
-  if (suppressClick || saving.value) return
+  if (suppressClick) return
   selectedId.value = task.id
   const slot = taskSlot(task)
   if (slot) { editStart.value = slot.start; editEnd.value = slot.end }
 }
 async function openEditor(task: PlanningTask) {
-  if (suppressClick || saving.value || !taskSlot(task)) return
+  if (suppressClick || !taskSlot(task)) return
   selectTask(task)
   error.value = ''
   await nextTick()
@@ -209,7 +223,6 @@ async function openEditor(task: PlanningTask) {
   editorOpen.value = true
 }
 function closeEditor() {
-  if (saving.value) return
   editorDialog.value?.close()
   editorOpen.value = false
   error.value = ''
@@ -219,40 +232,79 @@ function changeRange(event: Event, edge: 'start' | 'end') {
   if (edge === 'start') rangeStart.value = value
   else rangeEnd.value = value
 }
-async function persist(task: PlanningTask, slot: TimeSlot | null) {
-  if (!task.id || saving.value) return
+// Shows the new time immediately and saves it in the background.
+function persist(task: PlanningTask, slot: TimeSlot | null) {
+  if (!task.id) return false
   error.value = ''
-  if (slot && !slotAvailable(slot, props.dayTasks, task.id)) {
+  if (slot && !slotAvailable(slot, viewDayTasks.value, task.id)) {
     error.value = 'Choose a free time with at least 1 hour. Tasks cannot overlap.'
-    return
+    return false
   }
-  saving.value = true
-  try {
-    await props.saveSchedule(task.id, slot)
-    status.value = slot ? `${task.title} planned for ${formatMinute(slot.start)}–${formatMinute(slot.end)}.` : `${task.title} is no longer planned.`
-    selectedId.value = slot ? task.id : undefined
-    return true
-  } catch (cause) {
-    error.value = cause instanceof Error && !('code' in cause) ? cause.message : 'Could not save the time. Please try again.'
-  } finally {
-    saving.value = false
+  pending.value[task.id] = slot
+  confirmed.delete(task.id)
+  // Saves run one at a time and in order, so a task can take a slot another task has just
+  // left. Back-to-back edits of the same task are merged into a single write.
+  const last = queue[queue.length - 1]
+  if (last?.id === task.id) last.slot = slot
+  else queue.push({ id: task.id, title: task.title, date: props.day, slot })
+  status.value = slot ? `${task.title} planned for ${formatMinute(slot.start)}–${formatMinute(slot.end)}.` : `${task.title} is no longer planned.`
+  selectedId.value = slot ? task.id : undefined
+  void drain()
+  return true
+}
+async function drain() {
+  if (draining) return
+  draining = true
+  while (queue.length) {
+    const job = queue.shift()!
+    let saved = true
+    try {
+      await props.saveSchedule(job.id, job.slot, job.date)
+    } catch (cause) {
+      saved = false
+      const reason = cause instanceof Error && !('code' in cause) ? cause.message : 'Check your connection and try again.'
+      error.value = `"${job.title}" was not saved. ${reason}`
+      status.value = error.value
+    }
+    // A newer edit of this task is still queued: keep showing that one.
+    if (queue.some(next => next.id === job.id)) continue
+    if (saved) {
+      // Keep the optimistic slot until the snapshot catches up, so the block does not jump back.
+      confirmed.set(job.id, job)
+      releaseConfirmed()
+      setTimeout(() => { if (confirmed.get(job.id) === job) release(job.id) }, 5000)
+    } else {
+      delete pending.value[job.id]
+    }
+  }
+  draining = false
+}
+function release(id: string) {
+  confirmed.delete(id)
+  delete pending.value[id]
+}
+function releaseConfirmed() {
+  for (const [id, job] of confirmed) {
+    const task = props.dayTasks.find(task => task.id === id)
+    if (!task || sameSlot(taskSlot(task), job.slot)) release(id)
   }
 }
+watch(() => props.dayTasks, releaseConfirmed)
 function scheduleFirst(task: PlanningTask) {
-  if (suppressClick || saving.value) return
-  const slot = firstFreeSlot(props.dayTasks, rangeStart.value, rangeEnd.value)
-  if (slot) void persist(task, slot)
+  if (suppressClick) return
+  const slot = firstFreeSlot(viewDayTasks.value, rangeStart.value, rangeEnd.value)
+  if (slot) persist(task, slot)
   else error.value = 'No free hour in this range. Expand the range or free up an existing slot.'
 }
-async function saveSelected() {
-  if (selectedTask.value && await persist(selectedTask.value, { start: editStart.value, end: editEnd.value })) closeEditor()
+function saveSelected() {
+  if (selectedTask.value && persist(selectedTask.value, { start: editStart.value, end: editEnd.value })) closeEditor()
 }
-async function unplanSelected() {
-  if (selectedTask.value && await persist(selectedTask.value, null)) closeEditor()
+function unplanSelected() {
+  if (selectedTask.value && persist(selectedTask.value, null)) closeEditor()
 }
 function moveWithKeyboard(task: PlanningTask, delta: number) {
   const slot = taskSlot(task)
-  if (slot) void persist(task, { start: slot.start + delta, end: slot.end + delta })
+  if (slot) persist(task, { start: slot.start + delta, end: slot.end + delta })
 }
 
 type Gesture = {
@@ -271,7 +323,7 @@ const grid = ref<HTMLElement>()
 const scroller = ref<HTMLElement>()
 watch([rangeStart, rangeEnd], () => { if (scroller.value) scroller.value.scrollTop = 0 })
 const gesture = ref<Gesture | null>(null)
-const gestureValid = computed(() => !!gesture.value && gesture.value.overGrid && slotAvailable(gesture.value.slot, props.dayTasks, gesture.value.task.id))
+const gestureValid = computed(() => !!gesture.value && gesture.value.overGrid && slotAvailable(gesture.value.slot, viewDayTasks.value, gesture.value.task.id))
 let suppressClick = false
 let clickTimer: ReturnType<typeof setTimeout> | undefined
 let frame = 0
@@ -282,7 +334,7 @@ function pointerMinute(y: number) {
   return rangeStart.value + (y - grid.value!.getBoundingClientRect().top) / PIXELS_PER_MINUTE
 }
 function startGesture(event: PointerEvent, task: PlanningTask, mode: Gesture['mode']) {
-  if (saving.value || !task.id || !grid.value || gesture.value || !event.isPrimary || event.button !== 0) return
+  if (!task.id || !grid.value || gesture.value || !event.isPrimary || event.button !== 0) return
   const original = taskSlot(task) || { start: rangeStart.value, end: Math.min(rangeEnd.value, rangeStart.value + 60) }
   pointerX = event.clientX
   pointerY = event.clientY
@@ -359,7 +411,7 @@ function finishGesture(event: PointerEvent) {
   gesture.value = null
   if (!current.moved) return
   ignoreNextClick()
-  if (valid) void persist(current.task, current.slot)
+  if (valid) persist(current.task, current.slot)
   else error.value = current.overGrid ? 'This time is occupied. The task kept its previous time.' : 'Drop the task inside the planner to save its time.'
 }
 function cancelGesture() {

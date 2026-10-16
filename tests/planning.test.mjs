@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { firstFreeSlot, formatMinute, slotAvailable, slotsOverlap, taskSlot, validSlot } from '../app/utils/planning.ts'
+import { firstFreeSlot, formatMinute, sameSlot, slotAvailable, slotsOverlap, taskSlot, validSlot } from '../app/utils/planning.ts'
 
 const task = (id, start, end, categoryId = 'work') => ({
   id, title: id, date: '2026-09-10', done: false, categoryId,
@@ -53,4 +53,11 @@ test('time labels include midnight and the exclusive day boundary', () => {
   assert.equal(formatMinute(0), '00:00')
   assert.equal(formatMinute(420), '07:00')
   assert.equal(formatMinute(1440), '24:00')
+})
+
+test('slots compare by their times, and "unplanned" only equals "unplanned"', () => {
+  assert.equal(sameSlot({ start: 420, end: 480 }, { start: 420, end: 480 }), true)
+  assert.equal(sameSlot({ start: 420, end: 480 }, { start: 420, end: 540 }), false)
+  assert.equal(sameSlot(null, null), true)
+  assert.equal(sameSlot(null, { start: 420, end: 480 }), false)
 })

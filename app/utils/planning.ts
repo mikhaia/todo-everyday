@@ -34,6 +34,10 @@ export function slotsOverlap(a: TimeSlot, b: TimeSlot): boolean {
   return a.start < b.end && a.end > b.start
 }
 
+export function sameSlot(a: TimeSlot | null, b: TimeSlot | null): boolean {
+  return a === b || (!!a && !!b && a.start === b.start && a.end === b.end)
+}
+
 export function slotAvailable(slot: TimeSlot, tasks: PlanningTask[], taskId?: string): boolean {
   return validSlot(slot) && !tasks.some(task => {
     const other = taskSlot(task)
