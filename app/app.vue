@@ -9,12 +9,12 @@
     ></div>
     <div
       class="fixed min-h-screen inset-0 bg-cover bg-center z-[-1]"
-      :style="{ backgroundColor: activeCategory?.background || undefined }"
+      :style="{ backgroundColor: theme.background || '#d1d5db' }"
     ></div>
     <div class="min-h-screen text-gray-900 font-sans bg-cover bg-center relative z-1"
-      :class="{ 'bg-gray-300': !activeCategory?.background }"
+      :class="{ 'bg-gray-300': !theme.background && !theme.image }"
       :style="{
-        color: activeCategory?.background ? textColor(activeCategory.background) : ''
+        color: theme.background ? textColor(theme.background) : ''
       }">
       <div class="flex flex-col md:flex-row min-h-screen">
         <div
@@ -102,6 +102,7 @@
       </div>
         <DeleteCategoryModal />
         <CategoryModal />
+        <ListThemeModal />
         <TaskModal />
         <DeleteTaskModal />
         <UserSettingsModal />
@@ -119,23 +120,17 @@ import { format } from 'date-fns'
 import DeleteCategoryModal from './components/DeleteCategoryModal.vue'
 import CategoryList from './components/CategoryList.vue'
 import CategoryModal from './components/CategoryModal.vue'
+import ListThemeModal from './components/ListThemeModal.vue'
 import TaskModal from './components/TaskModal.vue'
 import DeleteTaskModal from './components/DeleteTaskModal.vue'
 import UserSettingsModal from './components/UserSettingsModal.vue'
 import { textColor } from './utils/color'
 import { isStaticRoute } from './utils/staticRoutes'
+import { useTheme } from './composables/useTheme'
 
 interface Todo {
   date: string | null
   done: boolean
-}
-
-interface Category {
-  id?: string
-  title: string
-  icon: string
-  background: string
-  image?: string
 }
 
 const router = useRouter()
@@ -144,12 +139,8 @@ const day = useState('day', () =>
   new Date().toISOString().slice(0, 10)
 )
 const tasks = useState<Todo[]>('tasks', () => [])
-const categories = useState<{ id: string; background: string }[]>('categories', () => [])
-const activeCategoryId = useState<string>('activeCategoryId', () => '')
-
-const activeCategory = computed(() =>
-  categories.value.find(c => c.id === activeCategoryId.value) as Category
-)
+// Selected category's background/image, or the general list's when no category is selected
+const { theme } = useTheme()
 
 const storage = getStorage()
 const sidebarOpen = ref(false)
@@ -164,7 +155,7 @@ const goMonth = () => {
   router.push(`/month/${day.value.slice(0, 7)}`)
 }
 
-watch(() => activeCategory.value?.image, async (path) => {
+watch(() => theme.value.image, async (path) => {
   if (!path) { imageUrl.value = ''; return }
 
   const cached = urlCache.get(path);
@@ -173,13 +164,13 @@ watch(() => activeCategory.value?.image, async (path) => {
   const currentPath = path;
   try {
     const url = await getDownloadURL(sref(storage, path));
-    if (activeCategory.value?.image === currentPath) {
+    if (theme.value.image === currentPath) {
       urlCache.set(path, url)
       imageUrl.value = url
     }
   } catch (e) {
     console.error('Error getting image:', e)
-    if (activeCategory.value?.image === currentPath) imageUrl.value = '';
+    if (theme.value.image === currentPath) imageUrl.value = '';
   }
 }, { immediate: true })
 

@@ -1,3 +1,20 @@
+// Background swatches offered for categories and the general list.
+export const backgroundOptions = [
+  '#F9FAFB',
+  '#87CEFA',
+  '#90EE90',
+  '#800000',
+  '#FFA500',
+  '#808080',
+  '#F9DF1D',
+  '#D0D0D0',
+  '#3F51B5',
+  '#607D8B',
+  '#009688',
+  '#A52A2A',
+  '#333333'
+]
+
 export function textColor(bg: string) {
   const { r, g, b } = toRGB(bg);
   const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;

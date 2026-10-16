@@ -1,12 +1,7 @@
 <template>
   <LoadingOverlay v-if="loading" />
   <div class="max-w-3xl text-black">
-    <h2 class="text-2xl font-bold flex flex-wrap items-center gap-1 pb-2"
-      :style="{
-        color: activeCategory?.image
-          ? '#fff'
-          : (activeCategory?.background ? textColor(activeCategory.background) : undefined)
-      }">
+    <h2 class="text-2xl font-bold flex flex-wrap items-center gap-1 pb-2" :style="{ color: themeTextColor }">
       <div class="ml-14 md:ml-0 text-xl md:text-2xl">
         <span
           class="material-symbols-outlined text-4xl ml-auto md:ml-0 relative top-2"
@@ -43,14 +38,12 @@
           aria-label="Make list private"
           label="Make list private"
         >link_off</button>
-        <button
-          @click="categorySidebarOpen = !categorySidebarOpen"
+        <NuxtLink
+          :to="`/month/${day.slice(0, 7)}`"
           class="bg-white rounded shadow text-black p-1 material-symbols-outlined"
-          :aria-label="categorySidebarOpen ? 'Hide categories' : 'Show categories'"
-          :title="categorySidebarOpen ? 'Hide categories' : 'Show categories'"
-        >
-          inbox_text
-        </button>
+          aria-label="Calendar view"
+          title="Calendar view"
+        >calendar_month</NuxtLink>
         <button
           @click="planningView = !planningView"
           class="rounded shadow text-black p-1 material-symbols-outlined"
@@ -59,6 +52,15 @@
           :aria-pressed="planningView"
           :title="planningView ? 'Back to Day View' : 'Planning'"
         >calendar_view_day</button>
+        <PresetsMenu />
+        <button
+          @click="categorySidebarOpen = !categorySidebarOpen"
+          class="bg-white rounded shadow text-black p-1 material-symbols-outlined"
+          :aria-label="categorySidebarOpen ? 'Hide categories' : 'Show categories'"
+          :title="categorySidebarOpen ? 'Hide categories' : 'Show categories'"
+        >
+          inbox_text
+        </button>
       </div>
     </h2>
     <input
@@ -80,11 +82,7 @@
           />
           <label class="flex items-center gap-1 mt-1">
             <input type="checkbox" v-model="noDate" class="accent-primary w-5 h-5 shrink-0" />
-            <span :style="{
-              color: activeCategory?.image
-                ? '#fff'
-                : (activeCategory?.background ? textColor(activeCategory.background) : undefined)
-            }">No date</span>
+            <span :style="{ color: themeTextColor }">No date</span>
           </label>
         </div>
         <div class="flex flex-row gap-2 h-10">
@@ -170,7 +168,7 @@ import {
   runTransaction
 } from 'firebase/firestore'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
-import { textColor } from '../utils/color'
+import { useTheme } from '../composables/useTheme'
 import { slotAvailable, type TaskSchedule, type TimeSlot } from '../utils/planning'
 
 interface Todo {
@@ -202,6 +200,7 @@ const planningView = useState<boolean>('planningView', () => false)
 const activeCategory = computed(() =>
   categories.value.find((c) => c.id === activeCategoryId.value)
 )
+const { themeTextColor } = useTheme()
 
 const pageTitle = computed(
   () => `${activeCategory.value?.title ?? 'Todo'} :: ${day.value} - Todo Everyday`

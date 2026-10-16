@@ -7,6 +7,7 @@
         v-if="title"
         class="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2"
         :class="{ 'cursor-pointer select-none flex items-center gap-1': collapsible }"
+        :style="{ color: themeTextColor }"
         @click="collapsible && (collapsed = !collapsed)"
       >
         <span v-if="collapsible" class="material-symbols-outlined text-base transition-transform" :class="{ '-rotate-90': collapsed }">
@@ -76,6 +77,7 @@
 import { ref } from 'vue'
 import draggable from 'vuedraggable'
 import { textColor } from '../utils/color'
+import { useTheme } from '../composables/useTheme'
 
 interface Todo {
   id?: string
@@ -92,6 +94,9 @@ interface Category {
   icon: string
   background: string
 }
+
+// Section titles sit on the page background, so they follow its text color like the rest of the page.
+const { themeTextColor } = useTheme()
 
 const props = withDefaults(defineProps<{
   items: Todo[]

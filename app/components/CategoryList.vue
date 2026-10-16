@@ -11,6 +11,22 @@
       >close</button>
     </h3>
     <ul class="mt-2 space-y-1">
+      <li class="flex items-center gap-1">
+        <span class="material-symbols-outlined" :class="{'invisible': !!activeCategoryId}">check</span>
+        <span
+          class="px-2 py-1 rounded text-sm flex items-center gap-1 cursor-pointer flex-1 shadow-inner"
+          :style="{ background: allTasksBackground, color: textColor(allTasksBackground) }"
+          @click="activeCategoryId = ''"
+        >
+          <span class="material-symbols-outlined">checklist</span>
+          All tasks
+        </span>
+        <button @click="openThemeModal" class="btn btn-secondary p-0" aria-label="Edit background of all tasks" title="Edit background">
+          <span class="material-symbols-outlined text-sm p-1.5">edit</span>
+        </button>
+        <!-- keeps the row aligned with category rows, which also have a delete button -->
+        <span class="btn p-0 invisible" aria-hidden="true"><span class="material-symbols-outlined text-sm p-1.5">delete</span></span>
+      </li>
       <li v-for="c in categories" :key="c.id" class="flex items-center gap-1">
         <span class="material-symbols-outlined" :class="{'invisible': activeCategoryId !== c.id}">check</span>
         <span
@@ -39,14 +55,16 @@
 </template>
 
 <script setup lang="ts">
-import { watch, onUnmounted } from 'vue'
+import { computed, watch, onUnmounted } from 'vue'
 import { useFirebaseApp } from 'vuefire'
 import {
   getFirestore,
   collection,
+  doc,
   onSnapshot
 } from 'firebase/firestore'
 import { textColor } from '../utils/color'
+import type { ListTheme } from '../composables/useTheme'
 
 interface Category {
   id?: string
@@ -62,16 +80,30 @@ const activeCategoryId = useState<string>('activeCategoryId', () => '')
 const categorySidebarOpen = useState<boolean>('categorySidebarOpen', () => true)
 const categoryToEdit = useState<Category | null>('categoryToEdit', () => null)
 const showCategoryModal = useState<boolean>('showCategoryModal', () => false)
+const defaultTheme = useState<ListTheme>('defaultTheme', () => ({}))
+const showListThemeModal = useState<boolean>('showListThemeModal', () => false)
+const allTasksBackground = computed(() => defaultTheme.value.background || '#d1d5db')
 
 const app = useFirebaseApp()
 const db = getFirestore(app)
 
 let off: (() => void) | null = null
+let offTheme: (() => void) | null = null
 
 watch(user, (u) => {
   if (off) {
     off()
     off = null
+  }
+  offTheme?.()
+  offTheme = null
+  // The general list's theme lives on the user doc (next to apiToken).
+  if (u) {
+    offTheme = onSnapshot(doc(db, 'users', u.uid), (snap) => {
+      defaultTheme.value = (snap.data()?.defaultTheme as ListTheme | undefined) ?? {}
+    }, (e) => console.error('Error loading the general list theme', e))
+  } else {
+    defaultTheme.value = {}
   }
   if (u) {
     const q = collection(db, 'users', u.uid, 'categories')
@@ -88,6 +120,7 @@ watch(user, (u) => {
 
 onUnmounted(() => {
   if (off) off()
+  offTheme?.()
 })
 
 const categoryToDelete = useState<Category | null>('categoryToDelete', () => null)
@@ -97,6 +130,10 @@ const openModal = (c?: Category) => {
   if (!user.value) return
   categoryToEdit.value = c ? { ...c } : null
   showCategoryModal.value = true
+}
+
+const openThemeModal = () => {
+  if (user.value) showListThemeModal.value = true
 }
 
 const confirmDelete = (c: Category) => {

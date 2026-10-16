@@ -28,15 +28,17 @@ The Cloud Functions codebase lives in `functions/` (its own `package.json`, Comm
 - `user` — `{ uid, displayName, photoURL } | null`
 - `day` — selected date string `YYYY-MM-DD`
 - `tasks`, `categories`, `activeCategoryId` — current data + category filter
-- `categorySidebarOpen`, and modal pairs like `taskToEdit`/`showTaskModal`, `taskToDelete`/`showDeleteTaskModal`, `categoryToEdit`/`showCategoryModal`, `categoryToDelete`/`showDeleteCategoryModal`
+- `categorySidebarOpen`, and modal pairs like `taskToEdit`/`showTaskModal`, `taskToDelete`/`showDeleteTaskModal`, `categoryToEdit`/`showCategoryModal`, `categoryToDelete`/`showDeleteCategoryModal`, `showListThemeModal`
+- `defaultTheme` — `{ background, image }` of the general list (no category selected), loaded by `CategoryList.vue` from the `users/{uid}` doc
 
 **Auth flow:** `app/plugins/auth.client.ts` initializes Firebase Auth (`browserLocalPersistence`), subscribes to `onAuthStateChanged`, and writes the `user` state. `app/middleware/auth.global.ts` redirects unauthenticated users to `/login` — except `/share/*`, which is public and bypasses auth.
 
 **Firestore data model:**
 - `users/{uid}/todos` — a todo is `{ title, order, date: string | null, done, categoryId: string | null, createdAt: serverTimestamp }`. `date === null` means an undated task.
+- `users/{uid}/presets` — `{ title, tasks: [{ title, categoryId }], createdAt }`: routine task lists. Applying one (`PresetsMenu.vue`, logic in `utils/presets.ts`) batch-adds its tasks to the selected day, skipping tasks already there and dropping deleted categories. Firestore rules are not in this repo; they must allow this collection.
 - `users/{uid}/categories` — `{ title, icon, background, image? }`. `icon` is a Material Symbols name; `background` is a color; `image` is a Firebase Storage path.
 - `share` (top-level) — `{ uid, date, categoryId }`. A share doc's ID is the public URL slug at `/share/{id}`.
-- `users/{uid}` (the parent doc) — holds `apiToken` for the external API. Set via `setDoc(merge)` from `UserSettingsModal.vue`; may not exist until a token is generated.
+- `users/{uid}` (the parent doc) — holds `apiToken` for the external API and `defaultTheme: { background, image }` for the general list. Both are set via `setDoc(merge)` (`UserSettingsModal.vue`, `ListThemeModal.vue`, opened from the "All tasks" row in `CategoryList.vue`); the doc may not exist until one is saved. The general list's image is uploaded under `users/{uid}/categories/all-tasks/` so the category Storage rules cover it.
 
 **External task API (`functions/index.js`):** a single HTTPS function `api`, routed from Firebase Hosting via the `/api/**` rewrite. `POST /api/tasks` creates task(s), `POST /api/tasks/get` reads them, `POST /api/tasks/complete` marks them done, and `POST /api/tasks/delete` deletes them. Callers authenticate with the `apiToken` in the JSON body (not Firebase Auth); the function resolves token → `uid` by querying `users where apiToken == token` and category **name** → `categoryId` by title, using the Admin SDK (which bypasses security rules). Complete/delete accept `id` or `ids` and verify that every task belongs to the token owner. Create defaults: missing `date` → `null` (No date), missing/unknown `category` → `null` (No category). Get defaults: missing `date` → today. Written tasks use the same schema as the client.
 
@@ -48,10 +50,11 @@ The Cloud Functions codebase lives in `functions/` (its own `package.json`, Comm
 **Routing / pages:**
 - `pages/index.vue` — always resets `day` to today, renders `TodoList`.
 - `pages/date/[date].vue` — sets `day` from the route param, renders `TodoList`.
+- `pages/presets.vue` — list of presets with inline editing (`PresetEditor.vue`); presets load live via `composables/usePresets.ts`.
 - `pages/share/[uid].vue` — public read-only view resolved from a `share` doc ID.
 - `pages/login.vue` — Google sign-in.
 
-**`app.vue` is the shell** (not just a `<NuxtPage/>` host): left sidebar with an always-open `DatePicker` whose day cells are colored by completion status (`dayMap` derived from `tasks`), a right category sidebar (`CategoryList`), the four global modals, and a background layer. The active category's `background` color and `image` (loaded from Firebase Storage, URL-cached) drive the whole-page theme. It special-cases `/share/*` (hides sidebars/modals) and `/login`.
+**`app.vue` is the shell** (not just a `<NuxtPage/>` host): left sidebar with an always-open `DatePicker` whose day cells are colored by completion status (`dayMap` derived from `tasks`), a right category sidebar (`CategoryList`), the global modals, and a background layer. The active category's `background` color and `image` (loaded from Firebase Storage, URL-cached) drive the whole-page theme; with no category selected, the general list's `defaultTheme` is used. `composables/useTheme.ts` resolves this (`theme`, plus `themeTextColor` for text drawn on the background). It special-cases `/share/*` (hides sidebars/modals) and `/login`.
 
 **Todo list sections** (`TodoList.vue` → `TodoSection.vue`): the selected day's tasks, undated tasks, and "Outdated" (past-dated, not-done) tasks — each filtered by `activeCategoryId` when a category filter is active. Reordering commits new `order` values (`(idx+1)*1000`) via a Firestore `writeBatch`. Export/import serialize the current list to/from Markdown checkboxes on the clipboard.
 

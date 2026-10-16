@@ -80,6 +80,7 @@ import {
   deleteField
 } from 'firebase/firestore'
 import { getStorage, ref as storageRef, uploadBytes, deleteObject } from 'firebase/storage'
+import { backgroundOptions } from '../utils/color'
 
 interface Category {
   id?: string
@@ -106,21 +107,7 @@ const iconOptions = [
   'exercise'
 ]
 
-const colorOptions = [
-  '#F9FAFB',
-  '#87CEFA',
-  '#90EE90',
-  '#800000',
-  '#FFA500',
-  '#808080',
-  '#F9DF1D',
-  '#D0D0D0',
-  '#3F51B5',
-  '#607D8B',
-  '#009688',
-  '#A52A2A',
-  '#333333'
-]
+const colorOptions = backgroundOptions
 
 const newCategory = reactive({
   title: '',

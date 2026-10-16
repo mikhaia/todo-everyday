@@ -1,12 +1,7 @@
 <template>
   <LoadingOverlay v-if="loading" />
   <div class="text-black">
-    <div class="flex items-center gap-2 pb-4"
-      :style="{
-        color: activeCategory?.image
-          ? '#fff'
-          : (activeCategory?.background ? textColor(activeCategory.background) : undefined)
-      }">
+    <div class="flex items-center gap-2 pb-4" :style="{ color: themeTextColor }">
       <NuxtLink to="/" class="bg-white rounded shadow text-black p-1 material-symbols-outlined" aria-label="Day view" title="Day view">
         checklist
       </NuxtLink>
@@ -31,11 +26,7 @@
         v-for="w in weekdays"
         :key="w"
         class="text-center text-xs md:text-sm font-semibold py-1"
-        :style="{
-          color: activeCategory?.image
-            ? '#fff'
-            : (activeCategory?.background ? textColor(activeCategory.background) : undefined)
-        }"
+        :style="{ color: themeTextColor }"
       >{{ w }}</div>
     </div>
 
@@ -91,7 +82,7 @@ import {
   Timestamp,
 } from 'firebase/firestore'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths } from 'date-fns'
-import { textColor } from '../../utils/color'
+import { useTheme } from '../../composables/useTheme'
 
 interface Todo {
   id?: string
@@ -133,9 +124,7 @@ const month = computed(() => {
 const monthDate = computed(() => new Date(month.value + '-01'))
 const monthLabel = computed(() => format(monthDate.value, 'MMMM yyyy'))
 
-const activeCategory = computed(() =>
-  categories.value.find((c) => c.id === activeCategoryId.value)
-)
+const { themeTextColor } = useTheme()
 
 useHead({ title: computed(() => `${monthLabel.value} - Todo Everyday`) })
 
