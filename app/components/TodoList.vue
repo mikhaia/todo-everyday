@@ -1,7 +1,7 @@
 <template>
   <LoadingOverlay v-if="loading" />
   <div class="max-w-3xl text-black">
-    <h2 class="text-2xl font-bold flex items-center gap-1 pb-2"
+    <h2 class="text-2xl font-bold flex flex-wrap items-center gap-1 pb-2"
       :style="{
         color: activeCategory?.image
           ? '#fff'
@@ -51,6 +51,14 @@
         >
           inbox_text
         </button>
+        <button
+          @click="planningView = !planningView"
+          class="rounded shadow text-black p-1 material-symbols-outlined"
+          :class="planningView ? 'bg-blue-100 ring-2 ring-blue-500' : 'bg-white'"
+          aria-label="Planning"
+          :aria-pressed="planningView"
+          :title="planningView ? 'Back to Day View' : 'Planning'"
+        >calendar_view_day</button>
       </div>
     </h2>
     <input
@@ -93,38 +101,50 @@
               transition">Add</button>
         </div>
       </div>
-      <TodoSection
+      <PlanningView
+        v-if="planningView"
+        :key="`${user?.uid}:${day}`"
+        :day="day"
         :items="list"
+        :day-tasks="dayTasks"
         :category-map="categoryMap"
-        :always-show="true"
-        @reorder="onReorder"
-        @toggle-todo="toggle"
-        @edit-todo="openEdit"
-        @delete-todo="confirmDelete"
+        :save-schedule="saveSchedule"
       />
 
-      <TodoSection
-        :items="undatedList"
-        :category-map="categoryMap"
-        :show-divider="true"
-        @reorder="onReorder"
-        @toggle-todo="toggle"
-        @edit-todo="openEdit"
-        @delete-todo="confirmDelete"
-      />
+      <template v-else>
+        <TodoSection
+          :items="list"
+          :category-map="categoryMap"
+          :always-show="true"
+          @reorder="onReorder"
+          @toggle-todo="toggle"
+          @edit-todo="openEdit"
+          @delete-todo="confirmDelete"
+        />
 
-      <TodoSection
-        :items="outdatedList"
-        :category-map="categoryMap"
-        title="Outdated"
-        :show-date="true"
-        :show-divider="true"
-        :collapsible="true"
-        @reorder="onReorder"
-        @toggle-todo="toggle"
-        @edit-todo="openEdit"
-        @delete-todo="confirmDelete"
-      />
+        <TodoSection
+          :items="undatedList"
+          :category-map="categoryMap"
+          :show-divider="true"
+          @reorder="onReorder"
+          @toggle-todo="toggle"
+          @edit-todo="openEdit"
+          @delete-todo="confirmDelete"
+        />
+
+        <TodoSection
+          :items="outdatedList"
+          :category-map="categoryMap"
+          title="Outdated"
+          :show-date="true"
+          :show-divider="true"
+          :collapsible="true"
+          @reorder="onReorder"
+          @toggle-todo="toggle"
+          @edit-todo="openEdit"
+          @delete-todo="confirmDelete"
+        />
+      </template>
     </div>
   </div>
 </template>
@@ -146,10 +166,12 @@ import {
   onSnapshot,
   serverTimestamp,
   Timestamp,
-  writeBatch
+  writeBatch,
+  runTransaction
 } from 'firebase/firestore'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { textColor } from '../utils/color'
+import { slotAvailable, type TaskSchedule, type TimeSlot } from '../utils/planning'
 
 interface Todo {
   id?: string
@@ -159,6 +181,7 @@ interface Todo {
   done: boolean
   categoryId: string | null
   createdAt?: Timestamp | null
+  schedule?: TaskSchedule | null
 }
 
 interface Category {
@@ -174,6 +197,7 @@ const user = useState<{ uid: string } | null>('user', () => null)
 const categories = useState<Category[]>('categories', () => [])
 const activeCategoryId = useState<string>('activeCategoryId', () => '')
 const categorySidebarOpen = useState<boolean>('categorySidebarOpen', () => true)
+const planningView = useState<boolean>('planningView', () => false)
 
 const activeCategory = computed(() =>
   categories.value.find((c) => c.id === activeCategoryId.value)
@@ -294,6 +318,34 @@ watch([user, month], ([u, m]) => {
 onUnmounted(() => {
   off.forEach(fn => fn())
 })
+
+const dayTasks = computed(() => tasks.value.filter(t => t.date === day.value))
+
+const saveSchedule = async (id: string, slot: TimeSlot | null) => {
+  const uid = user.value?.uid
+  const date = day.value
+  if (!uid) throw new Error('Please sign in to plan tasks.')
+  // Read every known task for this day, including other categories. Transactions
+  // retry if another client changes one of these tasks while the slot is saved.
+  const ids = [...new Set([...dayTasks.value.map(t => t.id).filter((id): id is string => !!id), id])]
+  await runTransaction(db, async transaction => {
+    const snapshots = await Promise.all(ids.map(taskId =>
+      transaction.get(doc(db, 'users', uid, 'todos', taskId))
+    ))
+    const current = snapshots.filter(snapshot => snapshot.exists()).map(snapshot => ({
+      ...snapshot.data(), id: snapshot.id,
+    } as Todo))
+    if (!current.some(task => task.id === id && task.date === date)) {
+      throw new Error('This task was moved or deleted. Please choose another task.')
+    }
+    if (slot && !slotAvailable(slot, current.filter(task => task.date === date), id)) {
+      throw new Error('This time is occupied. Choose a free slot.')
+    }
+    transaction.update(doc(db, 'users', uid, 'todos', id), {
+      schedule: slot ? { date, start: slot.start, end: slot.end } : null,
+    })
+  })
+}
 
 const list = computed(() =>
   tasks.value.filter(
